@@ -1,4 +1,6 @@
-Đây là dự án của anh em, nhớ có thay đổi code thì phải báo anh em rồi mới push lên Git nhé! Please đừng làm nhau đau! :)
+Đây là dự án của anh em, nhớ có thay đổi code thì phải báo anh em rồi mới push lên Git nhé! Please đừng làm nhau đau!
+
+
 # Fuzzy E-Commerce Mobile App
 
 Ứng dụng mobile E-commerce được xây dựng với React Native và Expo.
