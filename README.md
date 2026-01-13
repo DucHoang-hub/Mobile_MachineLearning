@@ -5,15 +5,8 @@
 ## 🚀 Tính năng đã hoàn thành
 
 ### ✅ Màn hình đầu tiên (Initial Screens Flow)
-1. **Splash Screen** - Màn hình chào đầu với logo Fuzzy và animation
-2. **Onboarding Screens** - 3 màn hình giới thiệu tính năng chính:
-   - Welcome to Fuzzy 🛍️
-   - Secure Shopping 🔒
-   - Fast Delivery 🚀
-3. **Welcome Screen** - Màn hình chào mừng với các option:
-   - Login
-   - Sign Up
-   - Continue as Guest
+1. **Splash Screen** - Màn hình chào đầu với logo Fuzzy và 3 màn hình animation
+
 
 ## 📱 Cài đặt và Chạy dự án
 
