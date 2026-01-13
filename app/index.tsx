@@ -249,6 +249,8 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
         elevation: 10,
         alignItems: 'center',
+        position: 'relative', // For absolute positioning of the arrow button
+        overflow: 'visible',  // To let the button hang out
     },
 
     // Rotating Semi-Circle
@@ -346,6 +348,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     arrowButton: {
+        position: 'absolute',
+        bottom: -35, // Half of height (70/2) to hang out
         width: 70,
         height: 70,
         borderRadius: 35,
