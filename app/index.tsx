@@ -30,10 +30,10 @@ export default function OnboardingScreen() {
     const [slideAnim] = useState(new Animated.Value(0));
     const rotateAnim = useRef(new Animated.Value(0)).current;
 
-    // Auto-play timer
+    // Auto-play timer - only loops through 3 screens, never goes to login
     useEffect(() => {
         const autoPlayTimer = setTimeout(() => {
-            handleNext();
+            handleAutoPlay();
         }, 5000); // Auto change every 5 seconds
 
         return () => clearTimeout(autoPlayTimer);
@@ -56,7 +56,8 @@ export default function OnboardingScreen() {
         outputRange: ['0deg', '360deg'],
     });
 
-    const handleNext = () => {
+    // Auto-play handler - loops through 3 screens only
+    const handleAutoPlay = () => {
         // Fade out animation
         Animated.parallel([
             Animated.timing(fadeAnim, {
@@ -70,12 +71,11 @@ export default function OnboardingScreen() {
                 useNativeDriver: true,
             }),
         ]).start(() => {
-            // Change index - loop back to first screen after last
+            // Loop back to first screen if at last screen, otherwise go to next
             if (currentIndex < ONBOARDING_DATA.length - 1) {
                 setCurrentIndex(currentIndex + 1);
             } else {
-                // Last screen, go back to first screen
-                setCurrentIndex(0);
+                setCurrentIndex(0); // Loop back to first screen
             }
 
             // Fade in animation
@@ -95,10 +95,59 @@ export default function OnboardingScreen() {
         });
     };
 
+    // Manual arrow button handler - navigates to login on last screen
+    const handleNext = () => {
+        // Fade out animation
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: -width, // Slide to left
+                duration: 300,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            // If on last screen, navigate to login. Otherwise, go to next screen
+            if (currentIndex < ONBOARDING_DATA.length - 1) {
+                setCurrentIndex(currentIndex + 1);
+
+                // Fade in animation
+                slideAnim.setValue(width); // Start from right
+                Animated.parallel([
+                    Animated.timing(fadeAnim, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(slideAnim, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                ]).start();
+            } else {
+                // Last screen (screen 3), navigate to login when arrow clicked
+                router.push('/login');
+            }
+        });
+    };
+
     const currentData = ONBOARDING_DATA[currentIndex];
 
     return (
         <View style={styles.container}>
+            {/* Logo at the top */}
+            <View style={styles.logoContainer}>
+                <Image
+                    source={require('@/assets/images/LogoFUZZY-removebg-preview.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
+            </View>
+
             <Animated.View
                 style={[
                     styles.content,
@@ -189,6 +238,16 @@ const styles = StyleSheet.create({
         backgroundColor: '#1a2632',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    logoContainer: {
+        position: 'absolute',
+        top: 60,
+        alignItems: 'center',
+        zIndex: 100,
+    },
+    logo: {
+        width: 220,
+        height: 90,
     },
     bokehCircle: {
         position: 'absolute',

@@ -1,98 +1,198 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Image, StatusBar, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [searchQuery, setSearchQuery] = useState('');
+  const userName = "Minh"; // This would come from user data/auth
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  return (
+    <View style={styles.container}>
+      {/* Status Bar */}
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#FFFFFF"
+      />
+
+      {/* Header Section */}
+      <View style={styles.header}>
+        {/* Menu Icon */}
+        <TouchableOpacity
+          style={styles.iconButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="menu" size={28} color="#1a2632" />
+        </TouchableOpacity>
+
+        {/* User Info */}
+        <View style={styles.userInfo}>
+          {/* Avatar - Using Ionicons as placeholder */}
+          <View style={styles.avatarContainer}>
+            <Ionicons name="person" size={32} color="#FFFFFF" />
+          </View>
+
+          {/* Greeting */}
+          <View style={styles.greetingContainer}>
+            <Text style={styles.helloText}>Hello</Text>
+            <Text style={styles.userName}>{userName}!</Text>
+          </View>
+        </View>
+
+        {/* Notification Bell */}
+        <TouchableOpacity
+          style={styles.iconButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="notifications-outline" size={28} color="#1a2632" />
+          {/* Notification Badge */}
+          <View style={styles.notificationBadge} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Search and Filter Section */}
+      <View style={styles.searchSection}>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search-outline" size={20} color="#8B9DB8" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search here..."
+            placeholderTextColor="#8B9DB8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {/* Filter Button */}
+        <TouchableOpacity
+          style={styles.filterButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="options-outline" size={24} color="#1a2632" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Content Area - You can add your content here */}
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.contentPlaceholder}>
+          <Text style={styles.placeholderText}>Anh em code tiếp ở đây nhé!...</Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingBottom: 15,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8ECF0',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  iconButton: {
+    width: 45,
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginLeft: 15,
+  },
+  avatarContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#FFB800',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  greetingContainer: {
+    justifyContent: 'center',
+  },
+  helloText: {
+    fontSize: 14,
+    color: '#8B9DB8',
+    fontWeight: '400',
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a2632',
+    marginTop: 2,
+  },
+  notificationBadge: {
     position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FF4444',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  searchSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: '#FFFFFF',
+    gap: 12,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F7FA',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 50,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1a2632',
+    padding: 0,
+  },
+  filterButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: '#F5F7FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    flex: 1,
+  },
+  contentPlaceholder: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 200,
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: '#8B9DB8',
   },
 });
