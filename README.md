@@ -1,3 +1,6 @@
+Đây là dự án của anh em, nhớ có thay đổi code thì phải báo anh em rồi mới push lên Git nhé! Please đừng làm nhau đau!
+
+
 # Fuzzy E-Commerce Mobile App
 
 Ứng dụng mobile E-commerce được xây dựng với React Native và Expo.
@@ -5,15 +8,8 @@
 ## 🚀 Tính năng đã hoàn thành
 
 ### ✅ Màn hình đầu tiên (Initial Screens Flow)
-1. **Splash Screen** - Màn hình chào đầu với logo Fuzzy và animation
-2. **Onboarding Screens** - 3 màn hình giới thiệu tính năng chính:
-   - Welcome to Fuzzy 🛍️
-   - Secure Shopping 🔒
-   - Fast Delivery 🚀
-3. **Welcome Screen** - Màn hình chào mừng với các option:
-   - Login
-   - Sign Up
-   - Continue as Guest
+1. **Splash Screen** - Màn hình chào đầu với logo Fuzzy và 3 màn hình animation
+
 
 ## 📱 Cài đặt và Chạy dự án
 
