@@ -32,6 +32,8 @@ const CATEGORIES: Category[] = [
 
 const BEST_SELLING_IMAGE = require('../../assets/images/screen3_img11.png');
 const SECOND_BANNER_IMAGE = require('../../assets/images/screen3_img12.png');
+const WINGBACK_CHAIR_1 = require('../../assets/images/screen3_img15.png');
+const WINGBACK_CHAIR_2 = require('../../assets/images/screen3_img16.png');
 
 const NEW_ARRIVALS: Product[] = [
   {
@@ -383,8 +385,36 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalList}
         />
+        {/* Wingback Chair */}
+        {/* Wingback Chair Promo Section */}
+        <View style={styles.promoRow}>
+          {/* Card 1 */}
+          <View style={[styles.promoCard, { backgroundColor: '#8CB9D0' }]}>
+            <Image source={WINGBACK_CHAIR_1} style={styles.promoImage} resizeMode="cover" />
+            <View style={styles.promoContent}>
+              <Text style={styles.promoTitle}>Wingback{"\n"}Chair</Text>
+              <TouchableOpacity style={styles.promoButton}>
+                <Text style={styles.promoButtonText}>View More</Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Card 2 */}
+          <View style={[styles.promoCard, { backgroundColor: '#055C70' }]}>
+            <Image source={WINGBACK_CHAIR_2} style={styles.promoImage} resizeMode="cover" />
+              <View style={styles.promoContent}>
+              <Text style={styles.promoTitle}>Wingback{"\n"}Chair</Text>
+              <TouchableOpacity style={styles.promoButton}>
+                <Text style={styles.promoButtonText}>View More</Text>
+                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
         <View style={{ height: 80 }} />
       </ScrollView>
+      
     </View>
   );
 }
@@ -842,4 +872,46 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   // Reusing card styles for grid where possible
+  promoRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 15,
+    marginBottom: 20,
+  },
+  promoCard: {
+    flex: 1,
+    height: 250,
+    borderRadius: 20,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  promoContent: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'space-between', // 👈 KEY
+  },
+  promoImage: {
+    position:'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  promoTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    zIndex: 1,
+    lineHeight: 30,
+  },
+  promoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+    zIndex: 1,
+  },
+  promoButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 8,
+  },
 });
