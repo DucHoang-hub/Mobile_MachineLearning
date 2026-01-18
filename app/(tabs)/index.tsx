@@ -116,7 +116,7 @@ const FURNITURE_DECOR: Product[] = [
     description: 'Modern arms chair',
     price: 130,
     rating: 4.5,
-    image: require('../../assets/images/screen3_img7.png'), 
+    image: require('../../assets/images/screen3_img7.png'),
   },
   {
     id: '3',
@@ -142,7 +142,7 @@ export default function HomeScreen() {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   const toggleFavorite = (id: string) => {
-    setFavorites(prev => 
+    setFavorites(prev =>
       prev.includes(id) ? prev.filter(fid => fid !== id) : [...prev, id]
     );
   };
@@ -161,37 +161,38 @@ export default function HomeScreen() {
     const uniqueId = `${section}-${item.id}`;
     const isFavorite = favorites.includes(uniqueId);
     return (
-    <View style={styles.card}>
-      <View style={styles.cardImageContainer}>
-        <TouchableOpacity 
-          style={styles.favoriteButton}
-          onPress={() => toggleFavorite(uniqueId)}
-          activeOpacity={0.7}
-        >
-          <Ionicons 
-            name={isFavorite ? "heart" : "heart-outline"} 
-            size={18} 
-            color="#FF4444" 
-          />
-        </TouchableOpacity>
-        <Image source={item.image} resizeMode='contain' style={styles.cardImage} />
-        <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="bag-handle-outline" size={18} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{item.name}</Text>
-        <Text style={styles.cardDescription}>{item.description}</Text>
-        <View style={styles.cardFooter}>
-          <View style={styles.priceContainer}>
-             <Text style={styles.price}>${item.price}</Text>
-             {item.oldPrice && <Text style={styles.oldPrice}>${item.oldPrice}</Text>}
+      <View style={styles.card}>
+        <View style={styles.cardImageContainer}>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={() => toggleFavorite(uniqueId)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isFavorite ? "heart" : "heart-outline"}
+              size={18}
+              color="#FF4444"
+            />
+          </TouchableOpacity>
+          <Image source={item.image} resizeMode='contain' style={styles.cardImage} />
+          <TouchableOpacity style={styles.addButton}>
+            <Ionicons name="bag-handle-outline" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>{item.name}</Text>
+          <Text style={styles.cardDescription}>{item.description}</Text>
+          <View style={styles.cardFooter}>
+            <View style={styles.priceContainer}>
+              <Text style={styles.price}>${item.price}</Text>
+              {item.oldPrice && <Text style={styles.oldPrice}>${item.oldPrice}</Text>}
+            </View>
+            {renderStarRating(item.rating)}
           </View>
-          {renderStarRating(item.rating)}
         </View>
       </View>
-    </View>
-  )};
+    )
+  };
   const renderItem2 = ({ item }: { item: Product }) => (
     <View style={styles.offerCard}>
       {/* Image */}
@@ -235,10 +236,10 @@ export default function HomeScreen() {
         <TouchableOpacity style={styles.iconButton}>
           <Ionicons name="menu" size={24} color="#1a2632" />
         </TouchableOpacity>
-        
+
         <View style={styles.userInfo}>
-           <Image 
-            source={{ uri: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500' }} 
+          <Image
+            source={{ uri: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500' }}
             style={styles.avatar}
           />
           <View>
@@ -253,24 +254,24 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-        {/* Search */}
-        <View style={styles.searchSection}>
-          <View style={styles.searchContainer}>
-            <Ionicons name="search-outline" size={20} color="#8B9DB8" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search here..."
-              placeholderTextColor="#8B9DB8"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-          <TouchableOpacity style={styles.filterButton}>
-            <MaterialCommunityIcons name="view-grid-outline" size={24} color="#1a2632" />
-          </TouchableOpacity>
+      {/* Search */}
+      <View style={styles.searchSection}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search-outline" size={20} color="#8B9DB8" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search here..."
+            placeholderTextColor="#8B9DB8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
+        <TouchableOpacity style={styles.filterButton}>
+          <MaterialCommunityIcons name="view-grid-outline" size={24} color="#1a2632" />
+        </TouchableOpacity>
+      </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>  
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Promo Banner 1 */}
         <View style={styles.bannerContainer}>
           <View style={styles.bannerYellowBackground} />
@@ -289,22 +290,22 @@ export default function HomeScreen() {
         </View>
 
         {/* Categories */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
           {CATEGORIES.map((cat) => (
-            <TouchableOpacity 
-              key={cat.id} 
+            <TouchableOpacity
+              key={cat.id}
               style={[styles.categoryChip, activeCategory === cat.id && styles.activeCategoryChip]}
               onPress={() => setActiveCategory(cat.id)}
             >
               {activeCategory === cat.id && (
-                <MaterialCommunityIcons 
-                  name={cat.icon} 
-                  size={20} 
+                <MaterialCommunityIcons
+                  name={cat.icon}
+                  size={20}
                   color={activeCategory === cat.id ? "#FFF" : "#8B9DB8"}
                   style={{ marginRight: 8 }}
                 />
@@ -317,72 +318,72 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* New Arrivals */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>New Arrivals</Text>
-            <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
-          </View>
-          <FlatList
-            data={NEW_ARRIVALS}
-            renderItem={rendersItem1('new_arrivals')}
-            keyExtractor={item => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            columnWrapperStyle={{ justifyContent: 'space-between' }}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>New Arrivals</Text>
+          <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+        </View>
+        <FlatList
+          data={NEW_ARRIVALS}
+          renderItem={rendersItem1('new_arrivals')}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          scrollEnabled={false}
+          columnWrapperStyle={{ justifyContent: 'space-between' }}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+        />
 
-          {/* Trending Furniture */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Trending Furniture</Text>
-            <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+        {/* Trending Furniture */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Trending Furniture</Text>
+          <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+        </View>
+        <FlatList
+          data={TRENDING}
+          renderItem={renderItem2}
+          keyExtractor={item => item.id}
+          scrollEnabled={false}
+        />
+
+        {/* Second Banner */}
+        <View style={styles.secondBanner}>
+          <Image source={SECOND_BANNER_IMAGE} style={styles.secondBannerImage} resizeMode="cover" />
+          <View style={styles.secondBannerOverlay}>
+            <Text style={styles.secondBannerTitle}>Best Selling</Text>
+            <Text style={styles.secondBannerSubtitle}>Comforts & Modern{"\n"}Life Stylish Sofa</Text>
+            <TouchableOpacity style={styles.bannerButton}>
+              <Text style={styles.bannerButtonText}>View More</Text>
+              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
-          <FlatList
-            data={TRENDING}
-            renderItem={renderItem2}
-            keyExtractor={item => item.id}
-            scrollEnabled={false}
-          />
-        
-                {/* Second Banner */}
-          <View style={styles.secondBanner}>
-            <Image source={SECOND_BANNER_IMAGE} style={styles.secondBannerImage} resizeMode="cover" />
-            <View style={styles.secondBannerOverlay}>
-              <Text style={styles.secondBannerTitle}>Best Selling</Text>
-              <Text style={styles.secondBannerSubtitle}>Comforts & Modern{"\n"}Life Stylish Sofa</Text>
-              <TouchableOpacity style={styles.bannerButton}>
-                  <Text style={styles.bannerButtonText}>View More</Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-          </View>
-              {/* Offer Zone */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Offer Zone</Text>
-            <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
-          </View>
-          <FlatList
-              data={OFFER_ZONE}
-              renderItem={renderItem2}
-              keyExtractor={item => item.id}
-              scrollEnabled={false}
-            />
-                {/* Furniture And Decor */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Furniture And Decor</Text>
-            <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
-          </View>
-          <FlatList
-              data={FURNITURE_DECOR}
-              renderItem={rendersItem1('furniture_decor')}
-              keyExtractor={item => item.id}
-              numColumns={2}
-              scrollEnabled={false}
-              columnWrapperStyle={{ justifyContent: 'space-between' }}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
-            />
-          <View style={{ height: 100 }} />
+        </View>
+        {/* Offer Zone */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Offer Zone</Text>
+          <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+        </View>
+        <FlatList
+          data={OFFER_ZONE}
+          renderItem={renderItem2}
+          keyExtractor={item => item.id}
+          scrollEnabled={false}
+        />
+        {/* Furniture And Decor */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Furniture And Decor</Text>
+          <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+        </View>
+        <FlatList
+          data={FURNITURE_DECOR}
+          renderItem={rendersItem1('furniture_decor')}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          scrollEnabled={false}
+          columnWrapperStyle={{ justifyContent: 'space-between' }}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+        />
+        <View style={{ height: 80 }} />
       </ScrollView>
     </View>
   );
@@ -530,13 +531,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '55%',
     height: '100%',
-    resizeMode: 'contain', 
+    resizeMode: 'contain',
   },
   promoTag: {
     position: 'absolute',
     top: 15,
     right: 15,
-    backgroundColor: '#FF4444', 
+    backgroundColor: '#FF4444',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 4,
@@ -605,13 +606,13 @@ const styles = StyleSheet.create({
   card: {
     width: (width - 50) / 2,
     backgroundColor: '#FFFFFF',
-    borderRadius: 0, 
+    borderRadius: 0,
     marginBottom: 20,
   },
   cardImageContainer: {
     width: '100%',
     height: 140,
-    backgroundColor: '#F7F8FA', 
+    backgroundColor: '#F7F8FA',
     borderRadius: 16,
     padding: 15,
     alignItems: 'center',
@@ -705,13 +706,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   offerCard: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#FFFFFF',
-  borderRadius: 16,
-  padding: 12,
-  marginHorizontal: 20,
-  marginBottom: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    marginHorizontal: 20,
+    marginBottom: 15,
   },
 
   offerImageBox: {
