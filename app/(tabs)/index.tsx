@@ -730,11 +730,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
   },
-  verticalList: {
-    paddingHorizontal: 20,
-    gap: 15,
-    marginBottom: 20,
-  },
   offerCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -796,31 +791,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 5,
-    gap: 8,
-  },
   trendingPriceOld: {
     fontSize: 12,
     color: '#FF4444',
     fontWeight: '500',
-  },
-  trendingAction: {
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: '100%',
-    paddingVertical: 5,
-  },
-  smallAddButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#1a2632',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   secondBanner: {
     marginHorizontal: 20,
@@ -857,21 +831,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 15,
   },
-  // Reusing bannerButton* styles for second banner
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 20,
-    justifyContent: 'space-between',
-    paddingBottom: 20,
-  },
-  gridCard: {
-    width: (width - 55) / 2, // 20 padding * 2 + 15 gap = 55
-    backgroundColor: '#FFFFFF',
-    borderRadius: 0,
-    marginBottom: 20,
-  },
-  // Reusing card styles for grid where possible
   promoRow: {
     flexDirection: 'row',
     paddingHorizontal: 20,
