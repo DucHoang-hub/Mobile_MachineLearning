@@ -1,7 +1,8 @@
+import { useCart } from '@/contexts/CartContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Image, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, Modal, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Sample product data for each category
 const PRODUCTS_DATA: { [key: string]: any[] } = {
@@ -294,9 +295,12 @@ const PRODUCTS_DATA: { [key: string]: any[] } = {
 export default function CategoryProductsScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
+    const { addToCart } = useCart();
     const categoryTitle = params.title as string || 'Products';
     const [searchQuery, setSearchQuery] = useState('');
     const [favorites, setFavorites] = useState<string[]>([]);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [addedProductName, setAddedProductName] = useState('');
 
     // Get products for this category or use default
     const categoryProducts = PRODUCTS_DATA[categoryTitle] || PRODUCTS_DATA['Chairs'];
@@ -309,6 +313,31 @@ export default function CategoryProductsScreen() {
         setFavorites(prev =>
             prev.includes(id) ? prev.filter(fid => fid !== id) : [...prev, id]
         );
+    };
+
+    const handleQuickAddToCart = (item: any, e: any) => {
+        e.stopPropagation(); // Prevent navigation to detail page
+
+        const cartItem = {
+            id: item.id,
+            category: categoryTitle,
+            name: item.name,
+            price: item.price,
+            oldPrice: item.oldPrice,
+            quantity: 1,
+            color: 'Default',
+            colorHex: '#1a2632',
+            image: item.image,
+        };
+
+        addToCart(cartItem);
+        setAddedProductName(item.name);
+        setShowSuccessModal(true);
+
+        // Auto close after 1.5 seconds
+        setTimeout(() => {
+            setShowSuccessModal(false);
+        }, 1500);
     };
 
     const renderRating = (rating: number) => {
@@ -345,7 +374,10 @@ export default function CategoryProductsScreen() {
                         />
                     </TouchableOpacity>
                     <Image source={item.image} style={styles.productImage} resizeMode="contain" />
-                    <TouchableOpacity style={styles.addButton}>
+                    <TouchableOpacity
+                        style={styles.addButton}
+                        onPress={(e) => handleQuickAddToCart(item, e)}
+                    >
                         <Ionicons name="add-circle" size={32} color="#1a2632" />
                     </TouchableOpacity>
                 </View>
@@ -412,6 +444,26 @@ export default function CategoryProductsScreen() {
                 contentContainerStyle={styles.listContent}
                 renderItem={renderProductCard}
             />
+
+            {/* Quick Add Success Toast */}
+            <Modal
+                transparent
+                visible={showSuccessModal}
+                animationType="fade"
+                onRequestClose={() => setShowSuccessModal(false)}
+            >
+                <View style={styles.toastContainer}>
+                    <View style={styles.toast}>
+                        <View style={styles.toastIcon}>
+                            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                        </View>
+                        <View style={styles.toastTextContainer}>
+                            <Text style={styles.toastTitle}>Added to Cart!</Text>
+                            <Text style={styles.toastMessage} numberOfLines={1}>{addedProductName}</Text>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -600,5 +652,43 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         color: '#1a2632',
+    },
+
+    // Toast Notification
+    toastContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    },
+    toast: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 6,
+        minWidth: 280,
+        maxWidth: '90%',
+    },
+    toastIcon: {
+        marginRight: 12,
+    },
+    toastTextContainer: {
+        flex: 1,
+    },
+    toastTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#1a2632',
+        marginBottom: 2,
+    },
+    toastMessage: {
+        fontSize: 13,
+        color: '#8B9DB8',
     },
 });

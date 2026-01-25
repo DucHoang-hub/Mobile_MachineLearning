@@ -1,11 +1,15 @@
+import { useCart } from '@/contexts/CartContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+    Alert,
     Animated,
     Dimensions,
     FlatList,
     Image,
+    KeyboardAvoidingView,
+    Modal,
     Platform,
     ScrollView,
     StatusBar,
@@ -677,6 +681,7 @@ const SIMILAR_PRODUCTS = [
 export default function ProductDetailScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
+    const { addToCart } = useCart();
 
     const categoryTitle = params.category as string || 'Chairs';
     const productId = params.id as string || '1';
@@ -691,11 +696,134 @@ export default function ProductDetailScreen() {
     const [isFavorite, setIsFavorite] = useState(false);
     const [pincode, setPincode] = useState('');
     const [showFullDetails, setShowFullDetails] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [addedProductName, setAddedProductName] = useState('');
+
+    // Review states
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [userRating, setUserRating] = useState(5);
+    const [reviewText, setReviewText] = useState('');
+    const [reviews, setReviews] = useState<any[]>([
+        {
+            id: '1',
+            userName: 'Rina Jones',
+            userAvatar: '👩',
+            rating: 4.0,
+            comment: 'I adore this item. Just fantastic!! they create the actual seen in the picture !!',
+            timestamp: 'Just Now',
+        },
+        {
+            id: '2',
+            userName: 'Smith Williams',
+            userAvatar: '👨',
+            rating: 4.2,
+            comment: 'The best product quality.! It\'s amazing, Love it...!!',
+            timestamp: '1 min ago',
+        },
+    ]);
 
     const scrollX = useRef(new Animated.Value(0)).current;
     const flatListRef = useRef<FlatList>(null);
 
+    // Animation values for success modal
+    const scaleAnim = useRef(new Animated.Value(0)).current;
+    const tickScaleAnim = useRef(new Animated.Value(0)).current;
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
     const totalPrice = (product.price * quantity).toFixed(2);
+
+    useEffect(() => {
+        if (showSuccessModal) {
+            // Reset animations
+            scaleAnim.setValue(0);
+            tickScaleAnim.setValue(0);
+            fadeAnim.setValue(0);
+
+            // Start animations
+            Animated.parallel([
+                Animated.spring(scaleAnim, {
+                    toValue: 1,
+                    tension: 50,
+                    friction: 7,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+
+            // Delayed tick animation
+            setTimeout(() => {
+                Animated.spring(tickScaleAnim, {
+                    toValue: 1,
+                    tension: 100,
+                    friction: 7,
+                    useNativeDriver: true,
+                }).start();
+            }, 200);
+
+            // Auto close after 2 seconds
+            setTimeout(() => {
+                setShowSuccessModal(false);
+            }, 2000);
+        }
+    }, [showSuccessModal]);
+
+    const handleAddToCart = () => {
+        const cartItem = {
+            id: product.id,
+            category: categoryTitle,
+            name: product.name,
+            price: product.price,
+            oldPrice: product.oldPrice,
+            quantity: quantity,
+            color: getColorName(selectedColor),
+            colorHex: product.colors[selectedColor],
+            image: product.productViews?.[0]?.image || product.images?.[0],
+        };
+
+        addToCart(cartItem);
+
+        Alert.alert(
+            'Added to Cart',
+            `${product.name} has been added to your cart!`,
+            [
+                { text: 'Continue Shopping', style: 'cancel' },
+                { text: 'View Cart', onPress: () => router.push('/(tabs)/cart') }
+            ]
+        );
+    };
+
+    const getColorName = (index: number): string => {
+        const colorNames = ['Yellow', 'Blue', 'Gold', 'Black', 'Brown', 'Beige', 'Purple', 'Navy'];
+        return colorNames[index] || `Color ${index + 1}`;
+    };
+
+    const handleSubmitReview = () => {
+        if (reviewText.trim() === '') {
+            Alert.alert('Error', 'Please write a review comment');
+            return;
+        }
+
+        const newReview = {
+            id: Date.now().toString(),
+            userName: 'Current User', // In real app, get from auth context
+            userAvatar: '😊',
+            rating: userRating,
+            comment: reviewText,
+            timestamp: 'Just Now',
+        };
+
+        setReviews(prev => [newReview, ...prev]);
+        setShowReviewModal(false);
+        setReviewText('');
+        setUserRating(5);
+
+        Alert.alert('Success', 'Your review has been submitted!');
+    };
+
 
     const handleQuantityChange = (increment: boolean) => {
         if (increment) {
@@ -1069,10 +1197,44 @@ export default function ProductDetailScreen() {
                 {renderRatingBreakdown()}
 
                 {/* Write Review */}
-                <TouchableOpacity style={styles.writeReviewButton}>
+                <TouchableOpacity
+                    style={styles.writeReviewButton}
+                    onPress={() => setShowReviewModal(true)}
+                >
                     <Ionicons name="add" size={20} color="#1a2632" />
                     <Text style={styles.writeReviewText}>Write Your Review</Text>
                 </TouchableOpacity>
+
+                {/* Reviews List */}
+                <View style={styles.reviewsSection}>
+                    <View style={styles.reviewsHeader}>
+                        <Text style={styles.reviewsTitle}>{reviews.length} Reviews</Text>
+                        <TouchableOpacity>
+                            <Text style={styles.viewAllText}>View all</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {reviews.slice(0, 3).map((review) => (
+                        <View key={review.id} style={styles.reviewCard}>
+                            <View style={styles.reviewHeader}>
+                                <View style={styles.reviewUserInfo}>
+                                    <View style={styles.reviewAvatar}>
+                                        <Text style={styles.reviewAvatarText}>{review.userAvatar}</Text>
+                                    </View>
+                                    <View>
+                                        <Text style={styles.reviewUserName}>{review.userName}</Text>
+                                        <Text style={styles.reviewTimestamp}>{review.timestamp}</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.reviewRatingBadge}>
+                                    <Ionicons name="star" size={14} color="#FFB800" />
+                                    <Text style={styles.reviewRatingText}>{review.rating}</Text>
+                                </View>
+                            </View>
+                            <Text style={styles.reviewComment}>{review.comment}</Text>
+                        </View>
+                    ))}
+                </View>
 
                 {/* Similar Products */}
                 {renderSimilarProducts()}
@@ -1083,7 +1245,7 @@ export default function ProductDetailScreen() {
 
             {/* Fixed Add to Cart Button */}
             <View style={styles.bottomBar}>
-                <TouchableOpacity style={styles.addToCartButton}>
+                <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
                     <View style={styles.cartIconCircle}>
                         <Ionicons name="bag-outline" size={20} color="#FFFFFF" />
                     </View>
@@ -1091,6 +1253,146 @@ export default function ProductDetailScreen() {
                     <Text style={styles.cartPrice}>${totalPrice}</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Success Modal with Animation */}
+            <Modal
+                transparent
+                visible={showSuccessModal}
+                animationType="none"
+                onRequestClose={() => setShowSuccessModal(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowSuccessModal(false)}
+                >
+                    <Animated.View
+                        style={[
+                            styles.modalContent,
+                            {
+                                opacity: fadeAnim,
+                                transform: [{ scale: scaleAnim }]
+                            }
+                        ]}
+                    >
+                        <Animated.View
+                            style={[
+                                styles.successCircle,
+                                {
+                                    transform: [{ scale: tickScaleAnim }]
+                                }
+                            ]}
+                        >
+                            <Ionicons name="checkmark" size={48} color="#FFFFFF" />
+                        </Animated.View>
+
+                        <Text style={styles.successTitle}>Added to Cart!</Text>
+                        <Text style={styles.successMessage}>{addedProductName}</Text>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={styles.continueButton}
+                                onPress={() => setShowSuccessModal(false)}
+                            >
+                                <Text style={styles.continueButtonText}>Continue Shopping</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.viewCartButton}
+                                onPress={() => {
+                                    setShowSuccessModal(false);
+                                    router.push('/(tabs)/cart');
+                                }}
+                            >
+                                <Text style={styles.viewCartButtonText}>View Cart</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* Write Review Modal */}
+            <Modal
+                transparent
+                visible={showReviewModal}
+                animationType="slide"
+                onRequestClose={() => setShowReviewModal(false)}
+            >
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={styles.reviewModalOverlay}
+                >
+                    <View style={styles.reviewModalContent}>
+                        <View style={styles.reviewModalHeader}>
+                            <Text style={styles.reviewModalTitle}>Write Your Review</Text>
+                            <TouchableOpacity onPress={() => setShowReviewModal(false)}>
+                                <Ionicons name="close" size={24} color="#1a2632" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            {/* Star Rating */}
+                            <View style={styles.ratingInputSection}>
+                                <Text style={styles.ratingLabel}>Your Rating</Text>
+                                <View style={styles.starRatingInput}>
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <TouchableOpacity
+                                            key={star}
+                                            onPress={() => setUserRating(star)}
+                                            style={styles.starButton}
+                                        >
+                                            <Ionicons
+                                                name={star <= userRating ? "star" : "star-outline"}
+                                                size={36}
+                                                color={star <= userRating ? "#FFB800" : "#D0D0D0"}
+                                            />
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+
+                            {/* Review Text */}
+                            <View style={styles.reviewTextSection}>
+                                <Text style={styles.reviewTextLabel}>Your Review</Text>
+                                <TextInput
+                                    style={styles.reviewTextInput}
+                                    placeholder="Share your thoughts about this product..."
+                                    placeholderTextColor="#8B9DB8"
+                                    multiline
+                                    numberOfLines={6}
+                                    value={reviewText}
+                                    onChangeText={setReviewText}
+                                    textAlignVertical="top"
+                                />
+                            </View>
+
+                            {/* Buttons */}
+                            <View style={styles.reviewModalButtons}>
+                                <TouchableOpacity
+                                    style={styles.cancelReviewButton}
+                                    onPress={() => {
+                                        setShowReviewModal(false);
+                                        setReviewText('');
+                                        setUserRating(5);
+                                    }}
+                                >
+                                    <Text style={styles.cancelReviewText}>Cancel</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.submitReviewButton}
+                                    onPress={handleSubmitReview}
+                                >
+                                    <Text style={styles.submitReviewText}>Submit Review</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+                    </View>
+                </KeyboardAvoidingView>
+            </Modal>
         </View>
     );
 }
@@ -1670,5 +1972,237 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#FFFFFF',
         marginLeft: 20,
+    },
+
+    // Success Modal
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 24,
+        padding: 32,
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: 320,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.25,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    successCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#4CAF50',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    successTitle: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#1a2632',
+        marginBottom: 8,
+    },
+    successMessage: {
+        fontSize: 15,
+        color: '#8B9DB8',
+        textAlign: 'center',
+        marginBottom: 24,
+    },
+    modalButtons: {
+        width: '100%',
+        gap: 12,
+    },
+    continueButton: {
+        backgroundColor: '#F5F7FA',
+        borderRadius: 12,
+        paddingVertical: 14,
+        alignItems: 'center',
+    },
+    continueButtonText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1a2632',
+    },
+    viewCartButton: {
+        backgroundColor: '#1a2632',
+        borderRadius: 12,
+        paddingVertical: 14,
+        alignItems: 'center',
+    },
+    viewCartButtonText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#FFFFFF',
+    },
+
+    // Reviews Section
+    reviewsSection: {
+        paddingHorizontal: 20,
+        paddingVertical: 20,
+        backgroundColor: '#F8F9FA',
+    },
+    reviewsHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    reviewsTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1a2632',
+    },
+    reviewCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+    },
+    reviewHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 12,
+    },
+    reviewUserInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    reviewAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#F5F7FA',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    reviewAvatarText: {
+        fontSize: 20,
+    },
+    reviewUserName: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1a2632',
+    },
+    reviewTimestamp: {
+        fontSize: 12,
+        color: '#8B9DB8',
+        marginTop: 2,
+    },
+    reviewRatingBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: '#FFF9E6',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+    },
+    reviewRatingText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#FFB800',
+    },
+    reviewComment: {
+        fontSize: 14,
+        color: '#5A6B7F',
+        lineHeight: 20,
+    },
+
+    // Review Modal
+    reviewModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-end',
+    },
+    reviewModalContent: {
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 24,
+        maxHeight: '85%',
+    },
+    reviewModalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    reviewModalTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1a2632',
+    },
+    ratingInputSection: {
+        marginBottom: 24,
+    },
+    ratingLabel: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1a2632',
+        marginBottom: 12,
+    },
+    starRatingInput: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 12,
+    },
+    starButton: {
+        padding: 4,
+    },
+    reviewTextSection: {
+        marginBottom: 24,
+    },
+    reviewTextLabel: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1a2632',
+        marginBottom: 12,
+    },
+    reviewTextInput: {
+        borderWidth: 1,
+        borderColor: '#E5E5E5',
+        borderRadius: 12,
+        padding: 16,
+        fontSize: 15,
+        color: '#1a2632',
+        minHeight: 120,
+    },
+    reviewModalButtons: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    cancelReviewButton: {
+        flex: 1,
+        backgroundColor: '#F5F7FA',
+        borderRadius: 12,
+        paddingVertical: 14,
+        alignItems: 'center',
+    },
+    cancelReviewText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1a2632',
+    },
+    submitReviewButton: {
+        flex: 1,
+        backgroundColor: '#1a2632',
+        borderRadius: 12,
+        paddingVertical: 14,
+        alignItems: 'center',
+    },
+    submitReviewText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#FFFFFF',
     },
 });
