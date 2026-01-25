@@ -35,119 +35,36 @@ const SECOND_BANNER_IMAGE = require('../../assets/images/screen3_img12.png');
 const WINGBACK_CHAIR_1 = require('../../assets/images/screen3_img15.png');
 const WINGBACK_CHAIR_2 = require('../../assets/images/screen3_img16.png');
 
-const NEW_ARRIVALS: Product[] = [
-  {
-    id: '1',
-    name: 'Buddy Chair',
-    description: 'Modern saddle arms',
-    price: 14,
-    oldPrice: 20,
-    rating: 4.5,
-    image: require('../../assets/images/screen3_img1.png'),
-  },
-  {
-    id: '2',
-    name: 'Wingback Chair',
-    description: 'Modern saddle arms',
-    price: 14,
-    oldPrice: 20,
-    rating: 4.5,
-    image: require('../../assets/images/screen3_img15.png'),
-  },
+import { PRODUCTS_DATA } from '@/constants/data';
+import { useFavorites } from '@/contexts/FavoritesContext';
+
+const NEW_ARRIVALS = [
+  PRODUCTS_DATA['Chairs'][0],
+  PRODUCTS_DATA['Chairs'][1],
 ];
 
-const TRENDING: Product[] = [
-  {
-    id: '1',
-    name: 'Wingback Chair',
-    description: 'Modern arms chairs',
-    price: 25,
-    rating: 4.5,
-    oldPrice: 35,
-    discount: 'Save $10',
-    image: require('../../assets/images/screen3_img2.png'),
-  },
-  {
-    id: '2',
-    name: 'Mid Century Sofa',
-    description: 'Modern arms Sofa',
-    price: 998,
-    rating: 4.0,
-    image: require('../../assets/images/screen3_img13.png'),
-  },
-  {
-    id: '3',
-    name: 'Beige Chair',
-    description: 'Modern arms chair',
-    price: 37,
-    rating: 4.5,
-    image: require('../../assets/images/screen3_img14.png'),
-  },
+const TRENDING = [
+  PRODUCTS_DATA['Chairs'][1],
+  PRODUCTS_DATA['Sofas'][2],
+  PRODUCTS_DATA['Chairs'][3],
 ];
 
-const OFFER_ZONE: Product[] = [
-  {
-    id: '1',
-    name: 'Table Lamp',
-    description: 'Bedroom Study Table...',
-    price: 37,
-    rating: 5,
-    image: require('../../assets/images/screen3_img4.png'),
-  },
-  {
-    id: '2',
-    name: 'Lounge Chair',
-    description: 'Modern arms chair',
-    price: 37,
-    rating: 4,
-    image: require('../../assets/images/screen3_img10.png'),
-  },
+const OFFER_ZONE = [
+  PRODUCTS_DATA['Lamps'][1],
+  PRODUCTS_DATA['Chairs'][5],
 ];
-const FURNITURE_DECOR: Product[] = [
-  {
-    id: '1',
-    name: 'Bubble Swing chair',
-    description: 'Modern fading chair',
-    price: 120,
-    rating: 4.8,
-    image: require('../../assets/images/screen3_img6.png'),
-  },
-  {
-    id: '2',
-    name: 'Lounge Chair',
-    description: 'Modern arms chair',
-    price: 130,
-    rating: 4.5,
-    image: require('../../assets/images/screen3_img7.png'),
-  },
-  {
-    id: '3',
-    name: 'Double Bed Sheet',
-    description: 'Modern double bed sheet',
-    price: 120,
-    rating: 4.6,
-    image: require('../../assets/images/screen3_img8.png'),
-  },
-  {
-    id: '4',
-    name: 'Hanging Light',
-    description: 'Metal hanging light',
-    price: 120,
-    rating: 4.7,
-    image: require('../../assets/images/screen3_img9.png'),
-  }
+
+const FURNITURE_DECOR = [
+  PRODUCTS_DATA['Hanging chairs'][0],
+  PRODUCTS_DATA['Chairs'][5],
+  PRODUCTS_DATA['Tables'][1],
+  PRODUCTS_DATA['Lamps'][3],
 ];
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('1');
   const userName = "Hoang Duc";
-  const [favorites, setFavorites] = useState<string[]>([]);
-
-  const toggleFavorite = (id: string) => {
-    setFavorites(prev =>
-      prev.includes(id) ? prev.filter(fid => fid !== id) : [...prev, id]
-    );
-  };
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const renderStarRating = (rating: number) => {
     return (
@@ -160,20 +77,19 @@ export default function HomeScreen() {
 
 
   const rendersItem1 = (section: string) => ({ item }: { item: Product }) => {
-    const uniqueId = `${section}-${item.id}`;
-    const isFavorite = favorites.includes(uniqueId);
+    const isFavorited = isFavorite(item.id);
     return (
       <View style={styles.card}>
         <View style={styles.cardImageContainer}>
           <TouchableOpacity
             style={styles.favoriteButton}
-            onPress={() => toggleFavorite(uniqueId)}
+            onPress={() => toggleFavorite(item.id)}
             activeOpacity={0.7}
           >
             <Ionicons
-              name={isFavorite ? "heart" : "heart-outline"}
+              name={isFavorited ? "heart" : "heart-outline"}
               size={18}
-              color="#FF4444"
+              color={isFavorited ? "#FF4444" : "#1a2632"}
             />
           </TouchableOpacity>
           <Image source={item.image} resizeMode='contain' style={styles.cardImage} />

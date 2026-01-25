@@ -4,293 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Image, Modal, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// Sample product data for each category
-const PRODUCTS_DATA: { [key: string]: any[] } = {
-    'Chairs': [
-        {
-            id: '1',
-            name: 'Buddy Chair',
-            description: 'Modern saddle arms',
-            price: 14,
-            oldPrice: 20,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img1.png')
-        },
-        {
-            id: '2',
-            name: 'Wingback Chair',
-            description: 'Modern saddle arms',
-            price: 15,
-            oldPrice: 18,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img2.png')
-        },
-        {
-            id: '3',
-            name: 'Winston Chair',
-            description: 'Modern saddle arms',
-            price: 20,
-            oldPrice: 25,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img3.png')
-        },
-        {
-            id: '4',
-            name: 'Beige Chair',
-            description: 'Modern saddle arms',
-            price: 16,
-            oldPrice: 21,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img4.png')
-        },
-        {
-            id: '5',
-            name: 'Dining Chair',
-            description: 'Modern saddle arms',
-            price: 12,
-            oldPrice: 18,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img5.png')
-        },
-        {
-            id: '6',
-            name: 'Harbour Chair',
-            description: 'Modern saddle arms',
-            price: 17,
-            oldPrice: 23,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img6.png')
-        },
-    ],
-    'Tables': [
-        {
-            id: '1',
-            name: 'Modern Table',
-            description: 'Sleek design',
-            price: 120,
-            oldPrice: 150,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img7.png')
-        },
-        {
-            id: '2',
-            name: 'Dining Table',
-            description: 'Family sized',
-            price: 200,
-            oldPrice: 250,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img8.png')
-        },
-        {
-            id: '3',
-            name: 'Coffee Table',
-            description: 'Minimalist style',
-            price: 85,
-            oldPrice: 110,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img9.png')
-        },
-        {
-            id: '4',
-            name: 'Side Table',
-            description: 'Compact design',
-            price: 45,
-            oldPrice: 60,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img10.png')
-        },
-    ],
-    'Sofas': [
-        {
-            id: '1',
-            name: 'Comfort Sofa',
-            description: 'Soft cushions',
-            price: 350,
-            oldPrice: 450,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img11.png')
-        },
-        {
-            id: '2',
-            name: 'Modern Sofa',
-            description: 'Contemporary design',
-            price: 400,
-            oldPrice: 500,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img12.png')
-        },
-        {
-            id: '3',
-            name: 'L-Shape Sofa',
-            description: 'Spacious seating',
-            price: 550,
-            oldPrice: 650,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img13.png')
-        },
-        {
-            id: '4',
-            name: 'Velvet Sofa',
-            description: 'Luxury fabric',
-            price: 480,
-            oldPrice: 600,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img14.png')
-        },
-    ],
-    'Hanging chairs': [
-        {
-            id: '1',
-            name: 'Swing Chair',
-            description: 'Relaxing design',
-            price: 95,
-            oldPrice: 120,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img15.png')
-        },
-        {
-            id: '2',
-            name: 'Hammock Chair',
-            description: 'Outdoor style',
-            price: 110,
-            oldPrice: 140,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img16.png')
-        },
-        {
-            id: '3',
-            name: 'Pod Chair',
-            description: 'Modern hanging',
-            price: 150,
-            oldPrice: 180,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img1.png')
-        },
-        {
-            id: '4',
-            name: 'Basket Chair',
-            description: 'Woven design',
-            price: 85,
-            oldPrice: 100,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img2.png')
-        },
-    ],
-    'Cabinets': [
-        {
-            id: '1',
-            name: 'Storage Cabinet',
-            description: 'Multiple shelves',
-            price: 180,
-            oldPrice: 220,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img17.png')
-        },
-        {
-            id: '2',
-            name: 'Display Cabinet',
-            description: 'Glass doors',
-            price: 250,
-            oldPrice: 300,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img3.png')
-        },
-        {
-            id: '3',
-            name: 'TV Cabinet',
-            description: 'Media storage',
-            price: 200,
-            oldPrice: 260,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img4.png')
-        },
-        {
-            id: '4',
-            name: 'File Cabinet',
-            description: 'Office organizer',
-            price: 120,
-            oldPrice: 150,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img5.png')
-        },
-    ],
-    'Lamps': [
-        {
-            id: '1',
-            name: 'Floor Lamp',
-            description: 'Adjustable height',
-            price: 65,
-            oldPrice: 85,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img6.png')
-        },
-        {
-            id: '2',
-            name: 'Table Lamp',
-            description: 'Bedside light',
-            price: 35,
-            oldPrice: 45,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img7.png')
-        },
-        {
-            id: '3',
-            name: 'Desk Lamp',
-            description: 'Study light',
-            price: 40,
-            oldPrice: 55,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img8.png')
-        },
-        {
-            id: '4',
-            name: 'Wall Lamp',
-            description: 'Space saver',
-            price: 50,
-            oldPrice: 70,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img9.png')
-        },
-    ],
-    'Cupboards': [
-        {
-            id: '1',
-            name: 'Kitchen Cupboard',
-            description: 'Storage solution',
-            price: 220,
-            oldPrice: 280,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img10.png')
-        },
-        {
-            id: '2',
-            name: 'Bedroom Cupboard',
-            description: 'Wardrobe style',
-            price: 300,
-            oldPrice: 380,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img11.png')
-        },
-        {
-            id: '3',
-            name: 'Corner Cupboard',
-            description: 'Space efficient',
-            price: 160,
-            oldPrice: 200,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img12.png')
-        },
-        {
-            id: '4',
-            name: 'Tall Cupboard',
-            description: 'Extra storage',
-            price: 240,
-            oldPrice: 300,
-            rating: 4.5,
-            image: require('../assets/images/screen3_img13.png')
-        },
-    ],
-};
+import { PRODUCTS_DATA } from '@/constants/data';
+import { useFavorites } from '@/contexts/FavoritesContext';
 
 export default function CategoryProductsScreen() {
     const router = useRouter();
@@ -298,7 +13,7 @@ export default function CategoryProductsScreen() {
     const { addToCart } = useCart();
     const categoryTitle = params.title as string || 'Products';
     const [searchQuery, setSearchQuery] = useState('');
-    const [favorites, setFavorites] = useState<string[]>([]);
+    const { isFavorite, toggleFavorite } = useFavorites();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [addedProductName, setAddedProductName] = useState('');
 
@@ -309,11 +24,7 @@ export default function CategoryProductsScreen() {
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const toggleFavorite = (id: string) => {
-        setFavorites(prev =>
-            prev.includes(id) ? prev.filter(fid => fid !== id) : [...prev, id]
-        );
-    };
+
 
     const handleQuickAddToCart = (item: any, e: any) => {
         e.stopPropagation(); // Prevent navigation to detail page
@@ -351,8 +62,7 @@ export default function CategoryProductsScreen() {
 
     const renderProductCard = ({ item, index }: { item: any; index: number }) => {
         const isLeftColumn = index % 2 === 0;
-        const uniqueId = `${categoryTitle}-${item.id}`;
-        const isFavorite = favorites.includes(uniqueId);
+        const favorited = isFavorite(item.id);
         return (
             <Pressable
                 style={[styles.productCard, isLeftColumn ? styles.cardLeft : styles.cardRight]}
@@ -364,13 +74,13 @@ export default function CategoryProductsScreen() {
                 <View style={styles.imageContainer}>
                     <TouchableOpacity
                         style={styles.favoriteButton}
-                        onPress={() => toggleFavorite(uniqueId)}
+                        onPress={() => toggleFavorite(item.id)}
                         activeOpacity={0.7}
                     >
                         <Ionicons
-                            name={isFavorite ? "heart" : "heart-outline"}
+                            name={favorited ? "heart" : "heart-outline"}
                             size={18}
-                            color="#FF4444"
+                            color={favorited ? "#FF4444" : "#1a2632"}
                         />
                     </TouchableOpacity>
                     <Image source={item.image} style={styles.productImage} resizeMode="contain" />
