@@ -403,7 +403,7 @@ export default function HomeScreen() {
           {/* Card 2 */}
           <View style={[styles.promoCard, { backgroundColor: '#055C70' }]}>
             <Image source={WINGBACK_CHAIR_2} style={styles.promoImage} resizeMode="cover" />
-              <View style={styles.promoContent}>
+            <View style={styles.promoContent}>
               <Text style={styles.promoTitle}>Wingback{"\n"}Chair</Text>
               <TouchableOpacity style={styles.promoButton}>
                 <Text style={styles.promoButtonText}>View More</Text>
@@ -414,7 +414,7 @@ export default function HomeScreen() {
         </View>
         <View style={{ height: 80 }} />
       </ScrollView>
-      
+
     </View>
   );
 }
@@ -850,7 +850,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', // 👈 KEY
   },
   promoImage: {
-    position:'absolute',
+    position: 'absolute',
     width: '100%',
     height: '100%',
   },

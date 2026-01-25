@@ -23,6 +23,7 @@ export default function RootLayout() {
         <Stack.Screen name="reset-password" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="category-products" options={{ headerShown: false }} />
+        <Stack.Screen name="product-detail" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

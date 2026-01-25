@@ -300,7 +300,7 @@ export default function CategoryProductsScreen() {
 
     // Get products for this category or use default
     const categoryProducts = PRODUCTS_DATA[categoryTitle] || PRODUCTS_DATA['Chairs'];
-    
+
     const filteredProducts = categoryProducts.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -325,9 +325,12 @@ export default function CategoryProductsScreen() {
         const uniqueId = `${categoryTitle}-${item.id}`;
         const isFavorite = favorites.includes(uniqueId);
         return (
-            <Pressable 
+            <Pressable
                 style={[styles.productCard, isLeftColumn ? styles.cardLeft : styles.cardRight]}
-                onPress={() => {/* Navigate to product detail */}}
+                onPress={() => router.push({
+                    pathname: '/product-detail',
+                    params: { category: categoryTitle, id: item.id }
+                })}
             >
                 <View style={styles.imageContainer}>
                     <TouchableOpacity
@@ -346,11 +349,11 @@ export default function CategoryProductsScreen() {
                         <Ionicons name="add-circle" size={32} color="#1a2632" />
                     </TouchableOpacity>
                 </View>
-                
+
                 <View style={styles.productInfo}>
                     <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
                     <Text style={styles.productDescription} numberOfLines={1}>{item.description}</Text>
-                    
+
                     <View style={styles.priceRow}>
                         <View style={styles.priceContainer}>
                             <Text style={styles.price}>${item.price}</Text>
@@ -371,15 +374,15 @@ export default function CategoryProductsScreen() {
 
             {/* Header with Back Button */}
             <View style={styles.header}>
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={styles.backButton}
                     onPress={() => router.push('/(tabs)/categories')}
                 >
                     <Ionicons name="arrow-back" size={24} color="#1a2632" />
                 </TouchableOpacity>
-                
+
                 <Text style={styles.title}>{categoryTitle}</Text>
-                
+
                 <TouchableOpacity style={styles.iconButton}>
                     <Ionicons name="notifications-outline" size={24} color="#1a2632" />
                     <View style={styles.notificationBadge} />
@@ -494,7 +497,7 @@ const styles = StyleSheet.create({
         padding: 12,
         marginBottom: 16,
         width: '47%',
-        
+
         // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
