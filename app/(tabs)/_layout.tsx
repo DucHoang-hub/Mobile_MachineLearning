@@ -1,4 +1,5 @@
 import { useCart } from '@/contexts/CartContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
@@ -6,6 +7,7 @@ import { Platform, StyleSheet, Text, View } from 'react-native';
 
 export default function TabLayout() {
   const { getTotalItems } = useCart();
+  const { isDarkMode, colors } = useTheme();
   const cartItemCount = getTotalItems();
 
   return (
@@ -13,9 +15,12 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: '#1a2632',
-        tabBarInactiveTintColor: '#8B9DB8',
+        tabBarStyle: {
+          ...styles.tabBar,
+          backgroundColor: colors.background,
+        },
+        tabBarActiveTintColor: colors.text,
+        tabBarInactiveTintColor: colors.textSecondary,
       }}>
       <Tabs.Screen
         name="index"
@@ -26,9 +31,9 @@ export default function TabLayout() {
               <Ionicons
                 name={focused ? "home" : "home-outline"}
                 size={33}
-                color={focused ? '#1a2632' : color}
+                color={focused ? colors.text : color}
               />
-              {focused && <View style={styles.activeIndicator} />}
+              {focused && <View style={[styles.activeIndicator, { backgroundColor: colors.text }]} />}
             </View>
           ),
         }}
@@ -42,9 +47,9 @@ export default function TabLayout() {
               <Ionicons
                 name={focused ? "grid" : "grid-outline"}
                 size={33}
-                color={focused ? '#1a2632' : color}
+                color={focused ? colors.text : color}
               />
-              {focused && <View style={styles.activeIndicator} />}
+              {focused && <View style={[styles.activeIndicator, { backgroundColor: colors.text }]} />}
             </View>
           ),
         }}
@@ -59,7 +64,7 @@ export default function TabLayout() {
               <Ionicons
                 name={focused ? "bag-handle" : "bag-handle-outline"}
                 size={33}
-                color={focused ? '#1a2632' : color}
+                color={focused ? colors.text : color}
               />
               {cartItemCount > 0 && (
                 <View style={styles.badge}>
@@ -68,7 +73,7 @@ export default function TabLayout() {
                   </Text>
                 </View>
               )}
-              {focused && <View style={styles.activeIndicator} />}
+              {focused && <View style={[styles.activeIndicator, { backgroundColor: colors.text }]} />}
             </View>
           ),
         }}
@@ -82,9 +87,9 @@ export default function TabLayout() {
               <Ionicons
                 name={focused ? "heart" : "heart-outline"}
                 size={33}
-                color={focused ? '#1a2632' : color}
+                color={focused ? colors.text : color}
               />
-              {focused && <View style={styles.activeIndicator} />}
+              {focused && <View style={[styles.activeIndicator, { backgroundColor: colors.text }]} />}
             </View>
           ),
         }}
@@ -98,9 +103,9 @@ export default function TabLayout() {
               <Ionicons
                 name={focused ? "person" : "person-outline"}
                 size={33}
-                color={focused ? '#1a2632' : color}
+                color={focused ? colors.text : color}
               />
-              {focused && <View style={styles.activeIndicator} />}
+              {focused && <View style={[styles.activeIndicator, { backgroundColor: colors.text }]} />}
             </View>
           ),
         }}
@@ -123,7 +128,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: Platform.OS === 'ios' ? 75 : 55,
-    backgroundColor: '#FFFFFF',
     borderTopWidth: 0,
     elevation: 8,
     shadowColor: '#000',
@@ -148,7 +152,6 @@ const styles = StyleSheet.create({
     top: 0,
     width: 50,
     height: 2.5,
-    backgroundColor: '#1a2632',
     borderRadius: 2,
   },
   badge: {

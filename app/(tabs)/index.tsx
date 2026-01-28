@@ -1,3 +1,4 @@
+import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Dimensions, FlatList, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -65,6 +66,7 @@ export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState('1');
   const userName = "Hoang Duc";
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { isDarkMode, colors } = useTheme();
 
   const renderStarRating = (rating: number) => {
     return (
@@ -146,13 +148,13 @@ export default function HomeScreen() {
 
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="menu" size={24} color="#1a2632" />
+      <View style={[styles.header, { backgroundColor: colors.background }]}>
+        <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
+          <Ionicons name="menu" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <View style={styles.userInfo}>
@@ -161,31 +163,31 @@ export default function HomeScreen() {
             style={styles.avatar}
           />
           <View>
-            <Text style={styles.helloText}>Hello</Text>
-            <Text style={styles.userName}>{userName}</Text>
+            <Text style={[styles.helloText, { color: colors.textSecondary }]}>Hello</Text>
+            <Text style={[styles.userName, { color: colors.text }]}>{userName}</Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="notifications-outline" size={24} color="#1a2632" />
+        <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
+          <Ionicons name="notifications-outline" size={24} color={colors.text} />
           <View style={styles.notificationBadge} />
         </TouchableOpacity>
       </View>
 
       {/* Search */}
       <View style={styles.searchSection}>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color="#8B9DB8" style={styles.searchIcon} />
+        <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
+          <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search here..."
-            placeholderTextColor="#8B9DB8"
+            placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity style={styles.filterButton}>
-          <MaterialCommunityIcons name="view-grid-outline" size={24} color="#1a2632" />
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}>
+          <MaterialCommunityIcons name="view-grid-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -237,8 +239,8 @@ export default function HomeScreen() {
 
         {/* New Arrivals */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>New Arrivals</Text>
-          <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>New Arrivals</Text>
+          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text></TouchableOpacity>
         </View>
         <FlatList
           data={NEW_ARRIVALS}
@@ -253,8 +255,8 @@ export default function HomeScreen() {
 
         {/* Trending Furniture */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Trending Furniture</Text>
-          <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Trending Furniture</Text>
+          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text></TouchableOpacity>
         </View>
         <FlatList
           data={TRENDING}
@@ -277,8 +279,8 @@ export default function HomeScreen() {
         </View>
         {/* Offer Zone */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Offer Zone</Text>
-          <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Offer Zone</Text>
+          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text></TouchableOpacity>
         </View>
         <FlatList
           data={OFFER_ZONE}
@@ -288,8 +290,8 @@ export default function HomeScreen() {
         />
         {/* Furniture And Decor */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Furniture And Decor</Text>
-          <TouchableOpacity><Text style={styles.viewAllText}>View All</Text></TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Furniture And Decor</Text>
+          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text></TouchableOpacity>
         </View>
         <FlatList
           data={FURNITURE_DECOR}

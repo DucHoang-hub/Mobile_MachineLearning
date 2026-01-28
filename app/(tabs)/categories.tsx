@@ -1,3 +1,4 @@
+import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -51,37 +52,38 @@ const CATEGORIES_DATA = [
 export default function CategoriesScreen() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
+    const { isDarkMode, colors } = useTheme();
 
-    const filteredData = CATEGORIES_DATA.filter(item => 
+    const filteredData = CATEGORIES_DATA.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-                <View style={styles.header}>
-                    <TouchableOpacity 
-                        style={styles.backButton}
-                        onPress={() => router.push('/(tabs)')}
-                    >
-                        <Ionicons name="arrow-back" size={24} color="#1a2632" />
-                    </TouchableOpacity>
-                       <Text style={styles.title}>Categories</Text>
-                    <TouchableOpacity style={styles.iconButton}>
-                        <Ionicons name="notifications-outline" size={24} color="#1a2632" />
-                        <View style={styles.notificationBadge} />
+            <View style={[styles.header, { backgroundColor: colors.background }]}>
+                <TouchableOpacity
+                    style={[styles.backButton, { backgroundColor: colors.surface }]}
+                    onPress={() => router.push('/(tabs)')}
+                >
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
+                </TouchableOpacity>
+                <Text style={[styles.title, { color: colors.text }]}>Categories</Text>
+                <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
+                    <Ionicons name="notifications-outline" size={24} color={colors.text} />
+                    <View style={styles.notificationBadge} />
                 </TouchableOpacity>
             </View>
-            
+
             {/* Search */}
             <View style={styles.searchSection}>
-                <View style={styles.searchContainer}>
-                    <Ionicons name="search-outline" size={20} color="#8B9DB8" style={styles.searchIcon} />
+                <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
                     <TextInput
-                        style={styles.searchInput}
+                        style={[styles.searchInput, { color: colors.text }]}
                         placeholder="Search here..."
-                        placeholderTextColor="#8B9DB8"
+                        placeholderTextColor={colors.textSecondary}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
@@ -94,8 +96,8 @@ export default function CategoriesScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 100 }}
                 renderItem={({ item }) => (
-                    <Pressable 
-                        style={({pressed}) => [styles.categoriesCard, {opacity: pressed ? 0.9 : 1}]}
+                    <Pressable
+                        style={({ pressed }) => [styles.categoriesCard, { backgroundColor: colors.surface }, { opacity: pressed ? 0.9 : 1 }]}
                         onPress={() => router.push({
                             pathname: '/category-products',
                             params: { title: item.title }
@@ -103,10 +105,10 @@ export default function CategoriesScreen() {
                     >
                         <View style={styles.cardContent}>
                             <View>
-                                <Text style={styles.categoriesTitle}>{item.title}</Text>
-                                <Text style={styles.categoriesSubtitle}>Total {item.count} items available</Text>
+                                <Text style={[styles.categoriesTitle, { color: colors.text }]}>{item.title}</Text>
+                                <Text style={[styles.categoriesSubtitle, { color: colors.textSecondary }]}>Total {item.count} items available</Text>
                             </View>
-                            <Ionicons name="arrow-forward" size={24} color="#1a2632" />
+                            <Ionicons name="arrow-forward" size={24} color={colors.text} />
                         </View>
                         <Image source={item.image} style={styles.image} resizeMode="contain" />
                     </Pressable>
@@ -144,7 +146,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     placeholder: {
-        width:40,
+        width: 40,
     },
     iconButton: {
         width: 40,
@@ -204,7 +206,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         height: 140,
-        
+
         // Shadow
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },

@@ -15,6 +15,7 @@ import {
 import { PRODUCTS_DATA, SIMILAR_PRODUCTS } from '@/constants/data';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Helper to flatten products or find by ID
 const getAllProducts = () => {
@@ -29,6 +30,7 @@ export default function FavoritesScreen() {
     const router = useRouter();
     const { favorites, toggleFavorite } = useFavorites();
     const { addToCart } = useCart();
+    const { isDarkMode, colors } = useTheme();
 
     const allProducts = getAllProducts();
     const favoriteProducts = allProducts.filter((p) => favorites.includes(p.id));
@@ -48,8 +50,8 @@ export default function FavoritesScreen() {
     };
 
     const renderItem = ({ item }: { item: any }) => (
-        <View style={styles.card}>
-            <View style={styles.imageContainer}>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <View style={[styles.imageContainer, { backgroundColor: colors.surfaceSecondary }]}>
                 <Image
                     source={item.productViews?.[0]?.image || item.images?.[0]}
                     style={styles.productImage}
@@ -59,31 +61,31 @@ export default function FavoritesScreen() {
 
             <View style={styles.detailsContainer}>
                 <View style={styles.headerRow}>
-                    <Text style={styles.productName} numberOfLines={1}>
+                    <Text style={[styles.productName, { color: colors.text }]} numberOfLines={1}>
                         {item.name}
                     </Text>
                     <TouchableOpacity
                         onPress={() => toggleFavorite(item.id)}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        <Ionicons name="close" size={20} color="#8B9DB8" />
+                        <Ionicons name="close" size={20} color={colors.textSecondary} />
                     </TouchableOpacity>
                 </View>
 
-                <Text style={styles.qtyText}>Qty: 1</Text>
+                <Text style={[styles.qtyText, { color: colors.textSecondary }]}>Qty: 1</Text>
 
                 <View style={styles.priceRow}>
                     <View style={styles.prices}>
-                        <Text style={styles.price}>${item.price}</Text>
+                        <Text style={[styles.price, { color: colors.text }]}>${item.price}</Text>
                         {item.oldPrice && (
-                            <Text style={styles.oldPrice}>${item.oldPrice}</Text>
+                            <Text style={[styles.oldPrice, { color: colors.textSecondary }]}>${item.oldPrice}</Text>
                         )}
                     </View>
                     <TouchableOpacity
-                        style={styles.cartButton}
+                        style={[styles.cartButton, { backgroundColor: colors.primary }]}
                         onPress={() => handleAddToCart(item)}
                     >
-                        <Ionicons name="bag-outline" size={20} color="#FFFFFF" />
+                        <Ionicons name="bag-outline" size={20} color={colors.primaryText} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -91,14 +93,14 @@ export default function FavoritesScreen() {
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: colors.background }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#1a2632" />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.title}>Wishlist</Text>
+                <Text style={[styles.title, { color: colors.text }]}>Wishlist</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -112,9 +114,9 @@ export default function FavoritesScreen() {
                 />
             ) : (
                 <View style={styles.emptyContainer}>
-                    <Ionicons name="heart-outline" size={64} color="#E5E9F0" />
-                    <Text style={styles.emptyText}>Your wishlist is empty</Text>
-                    <Text style={styles.emptySubtext}>
+                    <Ionicons name="heart-outline" size={64} color={colors.textSecondary} />
+                    <Text style={[styles.emptyText, { color: colors.text }]}>Your wishlist is empty</Text>
+                    <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
                         Save items you love to find them easily later.
                     </Text>
                 </View>

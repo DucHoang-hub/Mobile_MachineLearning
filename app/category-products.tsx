@@ -1,4 +1,5 @@
 import { useCart } from '@/contexts/CartContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -11,6 +12,7 @@ export default function CategoryProductsScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const { addToCart } = useCart();
+    const { isDarkMode, colors } = useTheme();
     const categoryTitle = params.title as string || 'Products';
     const [searchQuery, setSearchQuery] = useState('');
     const { isFavorite, toggleFavorite } = useFavorites();
@@ -55,7 +57,7 @@ export default function CategoryProductsScreen() {
         return (
             <View style={styles.ratingContainer}>
                 <Ionicons name="star" size={14} color="#FFB800" />
-                <Text style={styles.ratingText}>{rating}</Text>
+                <Text style={[styles.ratingText, { color: colors.text }]}>{rating}</Text>
             </View>
         );
     };
@@ -65,42 +67,42 @@ export default function CategoryProductsScreen() {
         const favorited = isFavorite(item.id);
         return (
             <Pressable
-                style={[styles.productCard, isLeftColumn ? styles.cardLeft : styles.cardRight]}
+                style={[styles.productCard, { backgroundColor: colors.surface }, isLeftColumn ? styles.cardLeft : styles.cardRight]}
                 onPress={() => router.push({
                     pathname: '/product-detail',
                     params: { category: categoryTitle, id: item.id }
                 })}
             >
-                <View style={styles.imageContainer}>
+                <View style={[styles.imageContainer, { backgroundColor: colors.surfaceSecondary }]}>
                     <TouchableOpacity
-                        style={styles.favoriteButton}
+                        style={[styles.favoriteButton, { backgroundColor: colors.surface }]}
                         onPress={() => toggleFavorite(item.id)}
                         activeOpacity={0.7}
                     >
                         <Ionicons
                             name={favorited ? "heart" : "heart-outline"}
                             size={18}
-                            color={favorited ? "#FF4444" : "#1a2632"}
+                            color={favorited ? "#FF4444" : colors.text}
                         />
                     </TouchableOpacity>
                     <Image source={item.image} style={styles.productImage} resizeMode="contain" />
                     <TouchableOpacity
-                        style={styles.addButton}
+                        style={[styles.addButton, { backgroundColor: colors.surface }]}
                         onPress={(e) => handleQuickAddToCart(item, e)}
                     >
-                        <Ionicons name="add-circle" size={32} color="#1a2632" />
+                        <Ionicons name="add-circle" size={32} color={colors.text} />
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.productInfo}>
-                    <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
-                    <Text style={styles.productDescription} numberOfLines={1}>{item.description}</Text>
+                    <Text style={[styles.productName, { color: colors.text }]} numberOfLines={1}>{item.name}</Text>
+                    <Text style={[styles.productDescription, { color: colors.textSecondary }]} numberOfLines={1}>{item.description}</Text>
 
                     <View style={styles.priceRow}>
                         <View style={styles.priceContainer}>
-                            <Text style={styles.price}>${item.price}</Text>
+                            <Text style={[styles.price, { color: colors.text }]}>${item.price}</Text>
                             {item.oldPrice && (
-                                <Text style={styles.oldPrice}>${item.oldPrice}</Text>
+                                <Text style={[styles.oldPrice, { color: colors.textSecondary }]}>${item.oldPrice}</Text>
                             )}
                         </View>
                         {renderRating(item.rating)}
@@ -111,34 +113,34 @@ export default function CategoryProductsScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
             {/* Header with Back Button */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: colors.surface }]}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={[styles.backButton, { backgroundColor: colors.surfaceSecondary }]}
                     onPress={() => router.push('/(tabs)/categories')}
                 >
-                    <Ionicons name="arrow-back" size={24} color="#1a2632" />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
 
-                <Text style={styles.title}>{categoryTitle}</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{categoryTitle}</Text>
 
-                <TouchableOpacity style={styles.iconButton}>
-                    <Ionicons name="notifications-outline" size={24} color="#1a2632" />
+                <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surfaceSecondary }]}>
+                    <Ionicons name="notifications-outline" size={24} color={colors.text} />
                     <View style={styles.notificationBadge} />
                 </TouchableOpacity>
             </View>
 
             {/* Search Bar */}
-            <View style={styles.searchSection}>
-                <View style={styles.searchContainer}>
-                    <Ionicons name="search-outline" size={20} color="#8B9DB8" style={styles.searchIcon} />
+            <View style={[styles.searchSection, { backgroundColor: colors.surface }]}>
+                <View style={[styles.searchContainer, { backgroundColor: colors.surfaceSecondary }]}>
+                    <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
                     <TextInput
-                        style={styles.searchInput}
+                        style={[styles.searchInput, { color: colors.text }]}
                         placeholder="Search here..."
-                        placeholderTextColor="#8B9DB8"
+                        placeholderTextColor={colors.textSecondary}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
@@ -163,13 +165,13 @@ export default function CategoryProductsScreen() {
                 onRequestClose={() => setShowSuccessModal(false)}
             >
                 <View style={styles.toastContainer}>
-                    <View style={styles.toast}>
+                    <View style={[styles.toast, { backgroundColor: colors.surface }]}>
                         <View style={styles.toastIcon}>
                             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                         </View>
                         <View style={styles.toastTextContainer}>
-                            <Text style={styles.toastTitle}>Added to Cart!</Text>
-                            <Text style={styles.toastMessage} numberOfLines={1}>{addedProductName}</Text>
+                            <Text style={[styles.toastTitle, { color: colors.text }]}>Added to Cart!</Text>
+                            <Text style={[styles.toastMessage, { color: colors.textSecondary }]} numberOfLines={1}>{addedProductName}</Text>
                         </View>
                     </View>
                 </View>

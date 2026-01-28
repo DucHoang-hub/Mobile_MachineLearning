@@ -5,34 +5,41 @@ import 'react-native-reanimated';
 
 import { CartProvider } from '@/contexts/CartContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function RootLayoutContent() {
+  const { isDarkMode } = useTheme();
 
   return (
-    <CartProvider>
-      <FavoritesProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="signup" options={{ headerShown: false }} />
-            <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
-            <Stack.Screen name="otp-verification" options={{ headerShown: false }} />
-            <Stack.Screen name="reset-password" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="category-products" options={{ headerShown: false }} />
-            <Stack.Screen name="product-detail" options={{ headerShown: false }} />
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </FavoritesProvider>
-    </CartProvider>
+    <ThemeProvider value={isDarkMode ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
+        <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
+        <Stack.Screen name="otp-verification" options={{ headerShown: false }} />
+        <Stack.Screen name="reset-password" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="category-products" options={{ headerShown: false }} />
+        <Stack.Screen name="product-detail" options={{ headerShown: false }} />
+      </Stack>
+      <StatusBar style={isDarkMode ? 'light' : 'dark'} />
+    </ThemeProvider>
   );
 }
 
+export default function RootLayout() {
+  return (
+    <AppThemeProvider>
+      <CartProvider>
+        <FavoritesProvider>
+          <RootLayoutContent />
+        </FavoritesProvider>
+      </CartProvider>
+    </AppThemeProvider>
+  );
+}
