@@ -1,6 +1,6 @@
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Dimensions, FlatList, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -37,7 +37,9 @@ const WINGBACK_CHAIR_1 = require('../../assets/images/screen3_img15.png');
 const WINGBACK_CHAIR_2 = require('../../assets/images/screen3_img16.png');
 
 import { PRODUCTS_DATA } from '@/constants/data';
+import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { useLocalSearchParams } from 'expo-router';
 
 const NEW_ARRIVALS = [
   PRODUCTS_DATA['Chairs'][0],
@@ -52,36 +54,63 @@ const TRENDING = [
 
 const OFFER_ZONE = [
   PRODUCTS_DATA['Lamps'][1],
-  PRODUCTS_DATA['Chairs'][5],
+  PRODUCTS_DATA['Chairs'][3],
 ];
 
 const FURNITURE_DECOR = [
   PRODUCTS_DATA['Hanging chairs'][0],
-  PRODUCTS_DATA['Chairs'][5],
+  PRODUCTS_DATA['Chairs'][2],
   PRODUCTS_DATA['Tables'][1],
   PRODUCTS_DATA['Lamps'][3],
 ];
 export default function HomeScreen() {
+  const params = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('1');
   const userName = "Hoang Duc";
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { addToCart } = useCart();
   const { isDarkMode, colors } = useTheme();
-
+  const categoryTitle = params.title as string || "Products";
+  const scrollRef = useRef<ScrollView>(null);
   const renderStarRating = (rating: number) => {
     return (
       <View style={styles.ratingContainer}>
         <Ionicons name="star" size={12} color="#FFB800" />
-        <Text style={styles.ratingText}>{rating}</Text>
+        <Text style={[styles.ratingText, {color: colors.text}]}>{rating}</Text>
       </View>
     );
   };
 
-
+  const handleQuickAddToCart = (item: any, e: any) => {
+    e.stopPropagation();
+    
+    const cartItem = {
+      id: item.id, 
+      category: 'Home',
+      name: item.name,
+      price: item.price,
+      oldPrice: item.oldPrice || 0,
+      quantity: 1,
+      color: 'default',
+      colorHex: '#1a2632',
+      image: item.image,
+    };
+    addToCart(cartItem);
+  };
+  const handleCategoryPress = (id: string, index: number) =>{
+    setActiveCategory(id);
+    if(scrollRef.current){
+      scrollRef.current.scrollTo({
+        x: index * 80,
+        animated: true,
+      });
+    }
+  };
   const rendersItem1 = (section: string) => ({ item }: { item: Product }) => {
     const isFavorited = isFavorite(item.id);
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, {backgroundColor: colors.background}]}>
         <View style={styles.cardImageContainer}>
           <TouchableOpacity
             style={styles.favoriteButton}
@@ -95,16 +124,19 @@ export default function HomeScreen() {
             />
           </TouchableOpacity>
           <Image source={item.image} resizeMode='contain' style={styles.cardImage} />
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity 
+            style={[styles.addButton, {backgroundColor: colors.primary}]}
+            onPress={(e) => handleQuickAddToCart(item, e)}
+            >
             <Ionicons name="bag-handle-outline" size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
         <View style={styles.cardContent}>
-          <Text style={styles.cardTitle}>{item.name}</Text>
-          <Text style={styles.cardDescription}>{item.description}</Text>
+          <Text style={[styles.cardTitle, {color: colors.text}]}>{item.name}</Text>
+          <Text style={[styles.cardDescription, {color: colors.textSecondary}]}>{item.description}</Text>
           <View style={styles.cardFooter}>
             <View style={styles.priceContainer}>
-              <Text style={styles.price}>${item.price}</Text>
+              <Text style={[styles.price, {color: colors.text}]}>${item.price}</Text>
               {item.oldPrice && <Text style={styles.oldPrice}>${item.oldPrice}</Text>}
             </View>
             {renderStarRating(item.rating)}
@@ -114,7 +146,7 @@ export default function HomeScreen() {
     )
   };
   const renderItem2 = ({ item }: { item: Product }) => (
-    <View style={styles.offerCard}>
+    <View style={[styles.offerCard, {backgroundColor: colors.background}]}>
       {/* Image */}
       <View style={styles.offerImageBox}>
         <Image source={item.image} style={styles.offerImage} />
@@ -123,16 +155,16 @@ export default function HomeScreen() {
       {/* Content */}
       <View style={styles.offerContent}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={styles.offerTitle}>{item.name}</Text>
+          <Text style={[styles.offerTitle, {color: colors.text}]}>{item.name}</Text>
           {renderStarRating(item.rating)}
         </View>
 
-        <Text style={styles.offerDesc} numberOfLines={1}>
+        <Text style={[styles.offerDesc, {color: colors.textSecondary}]} numberOfLines={1}>
           {item.description}
         </Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={styles.offerPrice}>${item.price}</Text>
+          <Text style={[styles.offerPrice, {color: colors.text}]}>${item.price}</Text>
           {item.discount && (
             <Text style={styles.trendingPriceOld}>{item.discount}</Text>
           )}
@@ -140,7 +172,10 @@ export default function HomeScreen() {
       </View>
 
       {/* Add to cart */}
-      <TouchableOpacity style={styles.offerAddButton}>
+      <TouchableOpacity 
+        style={[styles.offerAddButton, {backgroundColor: colors.primary}]}
+        onPress={(e) => handleQuickAddToCart(item, e)}
+      >
         <Ionicons name="bag-outline" size={18} color="#FFF" />
       </TouchableOpacity>
     </View>
@@ -211,16 +246,17 @@ export default function HomeScreen() {
 
         {/* Categories */}
         <ScrollView
+          ref={scrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
-          {CATEGORIES.map((cat) => (
+          {CATEGORIES.map((cat, index) => (
             <TouchableOpacity
               key={cat.id}
               style={[styles.categoryChip, activeCategory === cat.id && styles.activeCategoryChip]}
-              onPress={() => setActiveCategory(cat.id)}
+              onPress={() => handleCategoryPress(cat.id, index)}
             >
               {activeCategory === cat.id && (
                 <MaterialCommunityIcons
@@ -554,7 +590,7 @@ const styles = StyleSheet.create({
   card: {
     width: (width - 50) / 2,
     backgroundColor: '#FFFFFF',
-    borderRadius: 0,
+    borderRadius: 10,
     marginBottom: 20,
   },
   cardImageContainer: {
@@ -652,7 +688,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 10,
     padding: 12,
     marginHorizontal: 20,
     marginBottom: 15,
@@ -757,8 +793,8 @@ const styles = StyleSheet.create({
   },
   promoCard: {
     flex: 1,
-    height: 250,
-    borderRadius: 20,
+    height: 180,
+    borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
   },

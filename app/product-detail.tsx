@@ -24,6 +24,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { PRODUCTS_DATA, SIMILAR_PRODUCTS } from '@/constants/data';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function ProductDetailScreen() {
     const router = useRouter();
@@ -34,6 +35,7 @@ export default function ProductDetailScreen() {
     const categoryTitle = params.category as string || 'Chairs';
     const productId = params.id as string || '1';
 
+    const {isDarkMode, colors} = useTheme();
     // Find the product
     const categoryProducts = PRODUCTS_DATA[categoryTitle] || PRODUCTS_DATA['Chairs'];
     const product = categoryProducts.find(p => p.id === productId) || categoryProducts[0];
@@ -440,8 +442,8 @@ export default function ProductDetailScreen() {
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <View style={[styles.container, {backgroundColor: colors.background}]}>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
             {/* Header */}
             <View style={styles.header}>
@@ -1491,12 +1493,6 @@ const styles = StyleSheet.create({
     },
     ratingInputSection: {
         marginBottom: 24,
-    },
-    ratingLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#1a2632',
-        marginBottom: 12,
     },
     starRatingInput: {
         flexDirection: 'row',

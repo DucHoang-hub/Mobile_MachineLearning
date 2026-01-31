@@ -24,7 +24,7 @@ export default function CartScreen() {
             <View style={[styles.container, { backgroundColor: colors.background }]}>
                 <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
                 <View style={[styles.header, { backgroundColor: colors.surface }]}>
-                    <Text style={[styles.title, { color: colors.text }]}>Cart</Text>
+                    <Text style={[styles.title, { color: colors.text, textAlign: 'center' }]}>Cart</Text>
                 </View>
                 <View style={styles.emptyContent}>
                     <Ionicons name="bag-handle-outline" size={64} color={colors.textSecondary} />
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
+        flex: 1,
         fontSize: 24,
         fontWeight: '700',
         color: '#1a2632',

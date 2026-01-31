@@ -385,18 +385,6 @@ export default function ProfileScreen() {
                         />
                     </View>
 
-                    {/* RTL Toggle */}
-                    <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.settingLabel, { color: colors.text }]}>RTL</Text>
-                        <Switch
-                            value={settings.rtl}
-                            onValueChange={(value: boolean) => setSettings(prev => ({ ...prev, rtl: value }))}
-                            trackColor={{ false: colors.border, true: colors.primary }}
-                            thumbColor={'#FFFFFF'}
-                            ios_backgroundColor={colors.border}
-                        />
-                    </View>
-
                     {/* Notification Toggle */}
                     <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
                         <Text style={[styles.settingLabel, { color: colors.text }]}>Notification</Text>
