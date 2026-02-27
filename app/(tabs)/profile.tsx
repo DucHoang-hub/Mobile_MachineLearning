@@ -1,9 +1,21 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Image, Modal, Platform, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+interface OrderItem {
+    id: string;
+    name: string;
+    image: any;
+    qty: number;
+    status: 'Ongoing' | 'Delivered';
+    orderDate: string;
+    dispatchStatus: string;
+}
 
 interface HelpItem {
     id: string;
@@ -19,62 +31,6 @@ interface MenuItem {
     route?: string;
 }
 
-const MENU_ITEMS: MenuItem[] = [
-    {
-        id: '1',
-        icon: 'cube-outline',
-        title: 'Orders',
-        description: 'Ongoing orders, Recent orders..',
-    },
-    {
-        id: '2',
-        icon: 'heart-outline',
-        title: 'Wishlist',
-        description: 'Your save product',
-    },
-    {
-        id: '3',
-        icon: 'card-outline',
-        title: 'Payment',
-        description: 'Saved card, Wallets',
-    },
-    {
-        id: '4',
-        icon: 'location-outline',
-        title: 'Saved Address',
-        description: 'Home, Office',
-    },
-    {
-        id: '5',
-        icon: 'globe-outline',
-        title: 'Language',
-        description: 'Select your language here',
-    },
-    {
-        id: '6',
-        icon: 'notifications-outline',
-        title: 'Notification',
-        description: 'Offers, Order tracking messages',
-    },
-    {
-        id: '7',
-        icon: 'settings-outline',
-        title: 'Settings',
-        description: 'app settings, Dark mode',
-    },
-    {
-        id: '8',
-        icon: 'information-circle-outline',
-        title: 'Terms & Conditions',
-        description: 'T&C for use of platform',
-    },
-    {
-        id: '9',
-        icon: 'call-outline',
-        title: 'Help',
-        description: 'Customer Support, FAQs',
-    },
-];
 
 const HELP_ITEMS: HelpItem[] = [
     {
@@ -107,11 +63,57 @@ const HELP_ITEMS: HelpItem[] = [
 export default function ProfileScreen() {
     const router = useRouter();
     const { isDarkMode, setDarkMode, colors } = useTheme();
+    const { language, setLanguage: setSelectedLanguage, t } = useLanguage();
+    const selectedLanguage = language;
+
+    const MENU_ITEMS: MenuItem[] = [
+        { id: '1', icon: 'cube-outline', title: t.orders, description: t.ordersDesc },
+        { id: '2', icon: 'heart-outline', title: t.wishlist, description: t.wishlistDesc },
+        { id: '3', icon: 'card-outline', title: t.payment, description: t.paymentDesc },
+        { id: '4', icon: 'location-outline', title: t.savedAddress, description: t.savedAddressDesc },
+        { id: '5', icon: 'globe-outline', title: t.language, description: t.languageDesc },
+        { id: '6', icon: 'notifications-outline', title: t.notification, description: t.notificationDesc },
+        { id: '7', icon: 'settings-outline', title: t.settings, description: t.settingsDesc },
+        { id: '8', icon: 'information-circle-outline', title: t.termsConditions, description: t.termsDesc },
+        { id: '9', icon: 'call-outline', title: t.help, description: t.helpDesc },
+    ];
     const [isEditModalVisible, setIsEditModalVisible] = useState(false);
     const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
     const [isTermsModalVisible, setIsTermsModalVisible] = useState(false);
     const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
+    const [isOrdersModalVisible, setIsOrdersModalVisible] = useState(false);
+    const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+    const [isAddCardModalVisible, setIsAddCardModalVisible] = useState(false);
+    const [isAddressModalVisible, setIsAddressModalVisible] = useState(false);
+    const [isEditAddressVisible, setIsEditAddressVisible] = useState(false);
+    const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState('home');
+    const [addressData, setAddressData] = useState([
+        {
+            id: 'home',
+            label: 'Home',
+            address: '3501 Maloy Court, East Emhurst, New York City, NY 11369',
+            phone: '78596 0000',
+        },
+        {
+            id: 'office',
+            label: 'Office',
+            address: '8502-8503 Preston Rd. Inglewood Street, Maine 98380',
+            phone: '12100 0023',
+        },
+    ]);
+    const [editingAddress, setEditingAddress] = useState({ id: '', label: '', address: '', phone: '' });
+    const [selectedPaymentCard, setSelectedPaymentCard] = useState('1');
+    const [orderSearchQuery, setOrderSearchQuery] = useState('');
     const [expandedHelpId, setExpandedHelpId] = useState<string | null>(null);
+    const [newCardData, setNewCardData] = useState({
+        cardNumber: '',
+        holderName: '',
+        cvv: '',
+        expDate: '',
+    });
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [settings, setSettings] = useState({
         rtl: false,
         notification: false,
@@ -124,9 +126,62 @@ export default function ProfileScreen() {
     });
     const [editData, setEditData] = useState({ ...profileData });
 
+    const ORDER_ITEMS: OrderItem[] = [
+        {
+            id: '1',
+            name: 'Wingback Chair',
+            image: require('../../assets/images/screen3_img15.png'),
+            qty: 1,
+            status: 'Ongoing',
+            orderDate: "26 Jan'23",
+            dispatchStatus: 'Dispatched',
+        },
+        {
+            id: '2',
+            name: 'Table Lamp',
+            image: require('../../assets/images/screen3_img5.png'),
+            qty: 1,
+            status: 'Ongoing',
+            orderDate: "26 Jan'23",
+            dispatchStatus: 'Dispatched',
+        },
+        {
+            id: '3',
+            name: 'Side Table',
+            image: require('../../assets/images/screen3_img7.png'),
+            qty: 1,
+            status: 'Delivered',
+            orderDate: "26 Jan'23",
+            dispatchStatus: 'Dispatched',
+        },
+        {
+            id: '4',
+            name: 'Modern Sofa',
+            image: require('../../assets/images/screen3_img3.png'),
+            qty: 2,
+            status: 'Delivered',
+            orderDate: "20 Jan'23",
+            dispatchStatus: 'Delivered',
+        },
+    ];
+
+    const filteredOrders = ORDER_ITEMS.filter(order =>
+        order.name.toLowerCase().includes(orderSearchQuery.toLowerCase())
+    );
+
     const handleMenuPress = (item: MenuItem) => {
         // Handle menu item press
-        if (item.id === '9') {
+        if (item.id === '1') {
+            setIsOrdersModalVisible(true);
+        } else if (item.id === '2') {
+            router.push('/(tabs)/favorites');
+        } else if (item.id === '3') {
+            setIsPaymentModalVisible(true);
+        } else if (item.id === '4') {
+            setIsAddressModalVisible(true);
+        } else if (item.id === '5') {
+            setIsLanguageModalVisible(true);
+        } else if (item.id === '9') {
             setIsHelpModalVisible(true);
         } else if (item.id === '8') {
             setIsTermsModalVisible(true);
@@ -150,6 +205,559 @@ export default function ProfileScreen() {
         setIsEditModalVisible(false);
     };
 
+    const handleAddCard = () => {
+        // Save card logic here
+        setNewCardData({ cardNumber: '', holderName: '', cvv: '', expDate: '' });
+        setIsAddCardModalVisible(false);
+    };
+
+    const renderPaymentModal = () => (
+        <Modal
+            visible={isPaymentModalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setIsPaymentModalVisible(false)}
+        >
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+                {/* Modal Header */}
+                <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+                    <TouchableOpacity onPress={() => setIsPaymentModalVisible(false)}>
+                        <Ionicons name="chevron-back" size={28} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.paymentOptions}</Text>
+                    <View style={{ width: 28 }} />
+                </View>
+
+                <ScrollView
+                    style={styles.modalContent}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.paymentScrollContent}
+                >
+                    {/* Your Card Section */}
+                    <Text style={[styles.paymentSectionTitle, { color: colors.text }]}>{t.yourCard}</Text>
+
+                    {/* Mastercard */}
+                    <TouchableOpacity
+                        style={[styles.paymentCardItem, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                        onPress={() => setSelectedPaymentCard('1')}
+                        activeOpacity={0.7}
+                    >
+                        <View style={styles.paymentCardLeft}>
+                            <View style={styles.paymentCardLogoContainer}>
+                                <View style={styles.mastercardLogo}>
+                                    <View style={[styles.mcCircle, styles.mcRed]} />
+                                    <View style={[styles.mcCircle, styles.mcOrange]} />
+                                </View>
+                            </View>
+                            <View>
+                                <Text style={[styles.paymentCardNumber, { color: colors.text }]}>Mastercard *** *** 4589</Text>
+                                <Text style={[styles.paymentCardExpiry, { color: colors.textSecondary }]}>Expires on 16/24</Text>
+                            </View>
+                        </View>
+                        <View style={[styles.radioOuter, selectedPaymentCard === '1' && styles.radioOuterSelected]}>
+                            {selectedPaymentCard === '1' && <View style={styles.radioInner} />}
+                        </View>
+                    </TouchableOpacity>
+
+                    {/* Visa */}
+                    <TouchableOpacity
+                        style={[styles.paymentCardItem, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                        onPress={() => setSelectedPaymentCard('2')}
+                        activeOpacity={0.7}
+                    >
+                        <View style={styles.paymentCardLeft}>
+                            <View style={styles.paymentCardLogoContainer}>
+                                <Text style={styles.visaLogo}>VISA</Text>
+                            </View>
+                            <View>
+                                <Text style={[styles.paymentCardNumber, { color: colors.text }]}>visa *** *** 4589</Text>
+                                <Text style={[styles.paymentCardExpiry, { color: colors.textSecondary }]}>Expires on 16/24</Text>
+                            </View>
+                        </View>
+                        <View style={[styles.radioOuter, selectedPaymentCard === '2' && styles.radioOuterSelected]}>
+                            {selectedPaymentCard === '2' && <View style={styles.radioInner} />}
+                        </View>
+                    </TouchableOpacity>
+
+                    {/* Add New Card */}
+                    <TouchableOpacity
+                        style={styles.addNewCardLink}
+                        onPress={() => {
+                            setIsPaymentModalVisible(false);
+                            setTimeout(() => setIsAddCardModalVisible(true), 1);
+                        }}
+                    >
+                        <Text style={styles.addNewCardText}>+Add New Card</Text>
+                    </TouchableOpacity>
+
+                    {/* Wallet Section */}
+                    <Text style={[styles.paymentSectionTitle, { color: colors.text, marginTop: 24 }]}>Wallet</Text>
+
+                    <View style={[styles.walletContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                        {/* PayPal */}
+                        <TouchableOpacity
+                            style={[styles.walletItem, { borderBottomColor: colors.border }]}
+                            onPress={() => setSelectedPaymentCard('paypal')}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.walletItemLeft}>
+                                <View style={styles.walletIconContainer}>
+                                    <Text style={styles.paypalIcon}>P</Text>
+                                </View>
+                                <Text style={[styles.walletItemText, { color: colors.text }]}>Pay Pal</Text>
+                            </View>
+                            <View style={[styles.radioOuter, selectedPaymentCard === 'paypal' && styles.radioOuterSelected]}>
+                                {selectedPaymentCard === 'paypal' && <View style={styles.radioInner} />}
+                            </View>
+                        </TouchableOpacity>
+
+                        {/* Apple Pay */}
+                        <TouchableOpacity
+                            style={[styles.walletItem, { borderBottomColor: colors.border }]}
+                            onPress={() => setSelectedPaymentCard('applepay')}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.walletItemLeft}>
+                                <View style={styles.walletIconContainer}>
+                                    <Text style={styles.applePayIcon}>{"\uF8FF"}Pay</Text>
+                                </View>
+                                <Text style={[styles.walletItemText, { color: colors.text }]}>Apple Pay</Text>
+                            </View>
+                            <View style={[styles.radioOuter, selectedPaymentCard === 'applepay' && styles.radioOuterSelected]}>
+                                {selectedPaymentCard === 'applepay' && <View style={styles.radioInner} />}
+                            </View>
+                        </TouchableOpacity>
+
+                        {/* Google Pay */}
+                        <TouchableOpacity
+                            style={[styles.walletItem, { borderBottomColor: colors.border }]}
+                            onPress={() => setSelectedPaymentCard('googlepay')}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.walletItemLeft}>
+                                <View style={styles.walletIconContainer}>
+                                    <Ionicons name="logo-google" size={24} color="#4285F4" />
+                                </View>
+                                <Text style={[styles.walletItemText, { color: colors.text }]}>Google Pay</Text>
+                            </View>
+                            <View style={[styles.radioOuter, selectedPaymentCard === 'googlepay' && styles.radioOuterSelected]}>
+                                {selectedPaymentCard === 'googlepay' && <View style={styles.radioInner} />}
+                            </View>
+                        </TouchableOpacity>
+
+                        {/* Cash on Delivery */}
+                        <TouchableOpacity
+                            style={[styles.walletItem, { borderBottomWidth: 0 }]}
+                            onPress={() => setSelectedPaymentCard('cod')}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.walletItemLeft}>
+                                <View style={styles.walletIconContainer}>
+                                    <Ionicons name="cash-outline" size={24} color="#4CAF50" />
+                                </View>
+                                <Text style={[styles.walletItemText, { color: colors.text }]}>Cash on Delivery</Text>
+                            </View>
+                            <View style={[styles.radioOuter, selectedPaymentCard === 'cod' && styles.radioOuterSelected]}>
+                                {selectedPaymentCard === 'cod' && <View style={styles.radioInner} />}
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
+        </Modal>
+    );
+
+    const renderAddCardModal = () => (
+        <Modal
+            visible={isAddCardModalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setIsAddCardModalVisible(false)}
+        >
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+                {/* Modal Header */}
+                <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+                    <TouchableOpacity onPress={() => setIsAddCardModalVisible(false)}>
+                        <Ionicons name="chevron-back" size={28} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.addNewCard}</Text>
+                    <View style={{ width: 28 }} />
+                </View>
+
+                <ScrollView
+                    style={[styles.modalContent, { backgroundColor: colors.background }]}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.addCardScrollContent}
+                >
+                    {/* Card Number */}
+                    <View style={styles.fieldContainer}>
+                        <Text style={[styles.addCardLabel, { color: colors.text }]}>{t.cardNumber}</Text>
+                        <View style={[styles.addCardInput, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <TextInput
+                                style={[styles.addCardTextInput, { color: colors.text }]}
+                                placeholder={t.enterCardNumber}
+                                placeholderTextColor={colors.textSecondary}
+                                keyboardType="number-pad"
+                                value={newCardData.cardNumber}
+                                onChangeText={(text) => setNewCardData({ ...newCardData, cardNumber: text })}
+                            />
+                        </View>
+                    </View>
+
+                    {/* Card Holder Name */}
+                    <View style={styles.fieldContainer}>
+                        <Text style={[styles.addCardLabel, { color: colors.text }]}>{t.cardHolderName}</Text>
+                        <View style={[styles.addCardInput, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <TextInput
+                                style={[styles.addCardTextInput, { color: colors.text }]}
+                                placeholder={t.enterHolderName}
+                                placeholderTextColor={colors.textSecondary}
+                                value={newCardData.holderName}
+                                onChangeText={(text) => setNewCardData({ ...newCardData, holderName: text })}
+                            />
+                        </View>
+                    </View>
+
+                    {/* CVV and Exp. Date Row */}
+                    <View style={styles.addCardRow}>
+                        <View style={[styles.fieldContainer, { flex: 1, marginRight: 12 }]}>
+                            <Text style={[styles.addCardLabel, { color: colors.text }]}>{t.cvv}</Text>
+                            <View style={[styles.addCardInput, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                                <TextInput
+                                    style={[styles.addCardTextInput, { color: colors.text }]}
+                                    placeholder={t.enterCvv}
+                                    placeholderTextColor={colors.textSecondary}
+                                    keyboardType="number-pad"
+                                    secureTextEntry
+                                    maxLength={4}
+                                    value={newCardData.cvv}
+                                    onChangeText={(text) => setNewCardData({ ...newCardData, cvv: text })}
+                                />
+                            </View>
+                        </View>
+                        <View style={[styles.fieldContainer, { flex: 1.5 }]}>
+                            <Text style={[styles.addCardLabel, { color: colors.text }]}>{t.expDate}</Text>
+                            <TouchableOpacity
+                                style={[styles.addCardInput, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                                onPress={() => setShowDatePicker(true)}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={[styles.addCardTextInput, { color: newCardData.expDate ? colors.text : colors.textSecondary, flex: 1, paddingVertical: 14 }]}>
+                                    {newCardData.expDate || 'mm/dd/yyyy'}
+                                </Text>
+                                <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+                            </TouchableOpacity>
+                            {showDatePicker && (
+                                <DateTimePicker
+                                    value={selectedDate}
+                                    mode="date"
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                                    onChange={(event: any, date?: Date) => {
+                                        setShowDatePicker(Platform.OS === 'ios');
+                                        if (date) {
+                                            setSelectedDate(date);
+                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                            const day = String(date.getDate()).padStart(2, '0');
+                                            const year = date.getFullYear();
+                                            setNewCardData({ ...newCardData, expDate: `${month}/${day}/${year}` });
+                                        }
+                                    }}
+                                />
+                            )}
+                        </View>
+                    </View>
+                </ScrollView>
+
+                {/* Add Card Button */}
+                <View style={[styles.addCardFooter, { backgroundColor: colors.background }]}>
+                    <TouchableOpacity
+                        style={[styles.addCardButton, { backgroundColor: colors.primary }]}
+                        onPress={handleAddCard}
+                    >
+                        <Text style={[styles.addCardButtonText, { color: colors.primaryText }]}>{t.addCard}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
+
+    const renderAddressModal = () => (
+        <Modal
+            visible={isAddressModalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setIsAddressModalVisible(false)}
+        >
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+                {/* Modal Header */}
+                <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+                    <TouchableOpacity onPress={() => setIsAddressModalVisible(false)}>
+                        <Ionicons name="chevron-back" size={28} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.savedAddress}</Text>
+                    <View style={{ width: 28 }} />
+                </View>
+
+                <ScrollView
+                    style={styles.modalContent}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.addressScrollContent}
+                >
+                    {addressData.map((addr) => (
+                        <TouchableOpacity
+                            key={addr.id}
+                            style={[styles.addressCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                            onPress={() => setSelectedAddress(addr.id)}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.addressHeader}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+                                    <View style={[styles.radioOuter, selectedAddress === addr.id && styles.radioOuterSelected]}>
+                                        {selectedAddress === addr.id && <View style={styles.radioInner} />}
+                                    </View>
+                                    <Text style={[styles.addressLabel, { color: colors.text }]}>{addr.label}</Text>
+                                </View>
+                                <TouchableOpacity
+                                    style={[styles.addressEditBtn, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}
+                                    onPress={() => {
+                                        setEditingAddress({ ...addr });
+                                        setIsAddressModalVisible(false);
+                                        setTimeout(() => setIsEditAddressVisible(true), 1);
+                                    }}
+                                >
+                                    <Ionicons name="pencil" size={16} color={colors.text} />
+                                </TouchableOpacity>
+                            </View>
+                            <Text style={[styles.addressText, { color: colors.text }]}>
+                                {addr.address}
+                            </Text>
+                            <Text style={[styles.addressPhone, { color: colors.textSecondary }]}>
+                                Phone no. : <Text style={{ color: colors.text }}>{addr.phone}</Text>
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+
+                {/* Apply Button */}
+                <View style={[styles.addressFooter, { backgroundColor: colors.background }]}>
+                    <TouchableOpacity
+                        style={[styles.addressApplyButton, { backgroundColor: colors.primary }]}
+                        onPress={() => setIsAddressModalVisible(false)}
+                    >
+                        <Text style={[styles.addressApplyText, { color: colors.primaryText }]}>apply</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
+
+    const renderEditAddressModal = () => (
+        <Modal
+            visible={isEditAddressVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setIsEditAddressVisible(false)}
+        >
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+                {/* Modal Header */}
+                <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+                    <TouchableOpacity onPress={() => setIsEditAddressVisible(false)}>
+                        <Ionicons name="chevron-back" size={28} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.editAddress}</Text>
+                    <View style={{ width: 28 }} />
+                </View>
+
+                <ScrollView
+                    style={[styles.modalContent, { backgroundColor: colors.background }]}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.editAddrScrollContent}
+                >
+                    {/* Label */}
+                    <View style={styles.fieldContainer}>
+                        <Text style={[styles.addCardLabel, { color: colors.text }]}>{t.label}</Text>
+                        <View style={[styles.addCardInput, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <TextInput
+                                style={[styles.addCardTextInput, { color: colors.text }]}
+                                placeholder="e.g. Home, Office"
+                                placeholderTextColor={colors.textSecondary}
+                                value={editingAddress.label}
+                                onChangeText={(text) => setEditingAddress({ ...editingAddress, label: text })}
+                            />
+                        </View>
+                    </View>
+
+                    {/* Address */}
+                    <View style={styles.fieldContainer}>
+                        <Text style={[styles.addCardLabel, { color: colors.text }]}>{t.address}</Text>
+                        <View style={[styles.addCardInput, { backgroundColor: colors.surface, borderColor: colors.border, height: 100, alignItems: 'flex-start', paddingVertical: 12 }]}>
+                            <TextInput
+                                style={[styles.addCardTextInput, { color: colors.text, textAlignVertical: 'top' }]}
+                                placeholder={t.enterAddress}
+                                placeholderTextColor={colors.textSecondary}
+                                multiline
+                                numberOfLines={3}
+                                value={editingAddress.address}
+                                onChangeText={(text) => setEditingAddress({ ...editingAddress, address: text })}
+                            />
+                        </View>
+                    </View>
+
+                    {/* Phone */}
+                    <View style={styles.fieldContainer}>
+                        <Text style={[styles.addCardLabel, { color: colors.text }]}>{t.phoneNumber}</Text>
+                        <View style={[styles.addCardInput, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <TextInput
+                                style={[styles.addCardTextInput, { color: colors.text }]}
+                                placeholder={t.enterPhone}
+                                placeholderTextColor={colors.textSecondary}
+                                keyboardType="phone-pad"
+                                value={editingAddress.phone}
+                                onChangeText={(text) => setEditingAddress({ ...editingAddress, phone: text })}
+                            />
+                        </View>
+                    </View>
+                </ScrollView>
+
+                {/* Save Button */}
+                <View style={[styles.addressFooter, { backgroundColor: colors.background }]}>
+                    <TouchableOpacity
+                        style={[styles.addressApplyButton, { backgroundColor: colors.primary }]}
+                        onPress={() => {
+                            setAddressData(prev => prev.map(a => a.id === editingAddress.id ? { ...editingAddress } : a));
+                            setIsEditAddressVisible(false);
+                        }}
+                    >
+                        <Text style={[styles.addressApplyText, { color: colors.primaryText }]}>{t.save}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
+
+    const LANGUAGES = ['English', 'Spanish', 'France', 'Portuguese', 'Russian', 'Chinese', 'Tiếng Việt'];
+
+    const renderLanguageModal = () => (
+        <Modal
+            visible={isLanguageModalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setIsLanguageModalVisible(false)}
+        >
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+                {/* Modal Header */}
+                <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+                    <TouchableOpacity onPress={() => setIsLanguageModalVisible(false)}>
+                        <Ionicons name="chevron-back" size={28} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.languages}</Text>
+                    <View style={{ width: 28 }} />
+                </View>
+
+                <ScrollView
+                    style={styles.modalContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {LANGUAGES.map((lang) => (
+                        <TouchableOpacity
+                            key={lang}
+                            style={[styles.langItem, { borderBottomColor: colors.border }]}
+                            onPress={() => setSelectedLanguage(lang)}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={[styles.langText, { color: colors.text }]}>{lang}</Text>
+                            <View style={[styles.radioOuter, selectedLanguage === lang && styles.radioOuterSelected]}>
+                                {selectedLanguage === lang && <View style={styles.radioInner} />}
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+        </Modal>
+    );
+
+    const renderOrdersModal = () => (
+        <Modal
+            visible={isOrdersModalVisible}
+            transparent
+            animationType="slide"
+            onRequestClose={() => setIsOrdersModalVisible(false)}
+        >
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+                {/* Modal Header */}
+                <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+                    <TouchableOpacity onPress={() => setIsOrdersModalVisible(false)}>
+                        <Ionicons name="chevron-back" size={28} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.orderHistory}</Text>
+                    <View style={{ width: 28 }} />
+                </View>
+
+                {/* Search Bar */}
+                <View style={[styles.orderSearchContainer, { backgroundColor: colors.background }]}>
+                    <View style={[styles.orderSearchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                        <Ionicons name="search-outline" size={20} color={colors.textSecondary} />
+                        <TextInput
+                            style={[styles.orderSearchInput, { color: colors.text }]}
+                            placeholder={t.searchHere}
+                            placeholderTextColor={colors.textSecondary}
+                            value={orderSearchQuery}
+                            onChangeText={setOrderSearchQuery}
+                        />
+                    </View>
+                </View>
+
+                {/* Orders List */}
+                <ScrollView
+                    style={styles.modalContent}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.ordersScrollContent}
+                >
+                    {filteredOrders.map((order) => (
+                        <View key={order.id} style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            {/* Order Info Row */}
+                            <View style={styles.orderInfoRow}>
+                                <View style={[styles.orderImageContainer, { backgroundColor: colors.surfaceSecondary }]}>
+                                    <Image source={order.image} style={styles.orderImage} resizeMode="contain" />
+                                </View>
+                                <View style={styles.orderDetails}>
+                                    <View style={styles.orderNameRow}>
+                                        <Text style={[styles.orderName, { color: colors.text }]}>{order.name}</Text>
+                                        <View style={[
+                                            styles.orderStatusBadge,
+                                            order.status === 'Ongoing'
+                                                ? styles.orderStatusOngoing
+                                                : styles.orderStatusDelivered
+                                        ]}>
+                                            <Text style={[
+                                                styles.orderStatusText,
+                                                order.status === 'Ongoing'
+                                                    ? styles.orderStatusTextOngoing
+                                                    : styles.orderStatusTextDelivered
+                                            ]}>{order.status}</Text>
+                                        </View>
+                                    </View>
+                                    <Text style={[styles.orderQty, { color: colors.textSecondary }]}>{t.qty}:{order.qty}</Text>
+                                    <TouchableOpacity>
+                                        <Text style={styles.orderViewDetails}>{t.viewDetails}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            {/* Order Footer */}
+                            <View style={[styles.orderFooter, { borderTopColor: colors.border }]}>
+                                <Text style={[styles.orderDateLabel, { color: colors.textSecondary }]}>
+                                    Order : <Text style={[styles.orderDateValue, { color: colors.text }]}>{order.orderDate}</Text>
+                                </Text>
+                                <Text style={[styles.orderDispatch, { color: colors.text }]}>{order.dispatchStatus}</Text>
+                            </View>
+                        </View>
+                    ))}
+                </ScrollView>
+            </View>
+        </Modal>
+    );
+
     const renderHelpModal = () => (
         <Modal
             visible={isHelpModalVisible}
@@ -163,7 +771,7 @@ export default function ProfileScreen() {
                     <TouchableOpacity onPress={() => setIsHelpModalVisible(false)}>
                         <Ionicons name="chevron-back" size={28} color="#1a2632" />
                     </TouchableOpacity>
-                    <Text style={styles.modalTitle}>Help Center</Text>
+                    <Text style={styles.modalTitle}>{t.helpCenter}</Text>
                     <View style={{ width: 28 }} />
                 </View>
 
@@ -178,7 +786,7 @@ export default function ProfileScreen() {
                         <View style={styles.helpIconContainer}>
                             <Ionicons name="help-circle" size={60} color="#0F1B28" />
                         </View>
-                        <Text style={styles.helpHeaderTitle}>Help Center</Text>
+                        <Text style={styles.helpHeaderTitle}>{t.helpCenter}</Text>
                         <Text style={styles.helpHeaderSubtitle}>
                             Please get in touch and we will be happy to help you. Get quick customer support by selecting your item
                         </Text>
@@ -186,7 +794,7 @@ export default function ProfileScreen() {
 
                     {/* Help Question Section */}
                     <View style={styles.helpQuestionSection}>
-                        <Text style={styles.helpQuestionTitle}>What issues are you facing?</Text>
+                        <Text style={styles.helpQuestionTitle}>{t.whatIssues}</Text>
 
                         {/* Help Items */}
                         <View style={styles.helpItemsContainer}>
@@ -222,7 +830,7 @@ export default function ProfileScreen() {
                         {/* Contact Support */}
                         <TouchableOpacity style={styles.contactSupportButton}>
                             <Ionicons name="call-outline" size={20} color="#FFFFFF" />
-                            <Text style={styles.contactSupportText}>Contact Support</Text>
+                            <Text style={styles.contactSupportText}>{t.contactSupport}</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -243,7 +851,7 @@ export default function ProfileScreen() {
                     <TouchableOpacity onPress={() => setIsTermsModalVisible(false)}>
                         <Ionicons name="chevron-back" size={28} color="#1a2632" />
                     </TouchableOpacity>
-                    <Text style={styles.modalTitle}>Terms & Conditions</Text>
+                    <Text style={styles.modalTitle}>{t.termsConditions}</Text>
                     <View style={{ width: 28 }} />
                 </View>
 
@@ -367,7 +975,7 @@ export default function ProfileScreen() {
                     <TouchableOpacity onPress={() => setIsSettingsModalVisible(false)}>
                         <Ionicons name="chevron-back" size={28} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={[styles.modalTitle, { color: colors.text }]}>Setting</Text>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.settings}</Text>
                     <View style={{ width: 28 }} />
                 </View>
 
@@ -375,7 +983,7 @@ export default function ProfileScreen() {
                 <View style={[styles.settingsContent, { backgroundColor: colors.background }]}>
                     {/* Dark/Light Toggle */}
                     <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.settingLabel, { color: colors.text }]}>Dark/Light</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t.darkLight}</Text>
                         <Switch
                             value={isDarkMode}
                             onValueChange={(value: boolean) => setDarkMode(value)}
@@ -387,7 +995,7 @@ export default function ProfileScreen() {
 
                     {/* Notification Toggle */}
                     <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.settingLabel, { color: colors.text }]}>Notification</Text>
+                        <Text style={[styles.settingLabel, { color: colors.text }]}>{t.notification}</Text>
                         <Switch
                             value={settings.notification}
                             onValueChange={(value: boolean) => setSettings(prev => ({ ...prev, notification: value }))}
@@ -576,7 +1184,7 @@ export default function ProfileScreen() {
 
             {/* Header */}
             <View style={[styles.header, { backgroundColor: colors.background }]}>
-                <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t.profile}</Text>
             </View>
 
             {/* Content */}
@@ -596,7 +1204,7 @@ export default function ProfileScreen() {
                 {/* Logout Button */}
                 <TouchableOpacity style={styles.logoutButton}>
                     <Ionicons name="log-out-outline" size={20} color="#FF4444" />
-                    <Text style={styles.logoutText}>Logout</Text>
+                    <Text style={styles.logoutText}>{t.logout}</Text>
                 </TouchableOpacity>
             </ScrollView>
 
@@ -611,6 +1219,24 @@ export default function ProfileScreen() {
 
             {/* Settings Modal */}
             {renderSettingsModal()}
+
+            {/* Orders Modal */}
+            {renderOrdersModal()}
+
+            {/* Payment Modal */}
+            {renderPaymentModal()}
+
+            {/* Add Card Modal */}
+            {renderAddCardModal()}
+
+            {/* Address Modal */}
+            {renderAddressModal()}
+
+            {/* Edit Address Modal */}
+            {renderEditAddressModal()}
+
+            {/* Language Modal */}
+            {renderLanguageModal()}
         </View>
     );
 }
@@ -983,6 +1609,398 @@ const styles = StyleSheet.create({
         borderBottomColor: '#E8EEF5',
     },
     settingLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#1a2632',
+    },
+    // Orders Modal Styles
+    orderSearchContainer: {
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    orderSearchBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F7FA',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E8EEF5',
+        paddingHorizontal: 14,
+        height: 48,
+        gap: 10,
+    },
+    orderSearchInput: {
+        flex: 1,
+        fontSize: 15,
+        color: '#1a2632',
+        paddingVertical: 0,
+    },
+    ordersScrollContent: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        paddingBottom: 50,
+        gap: 16,
+    },
+    orderCard: {
+        backgroundColor: '#F5F7FA',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#E8EEF5',
+        overflow: 'hidden',
+    },
+    orderInfoRow: {
+        flexDirection: 'row',
+        padding: 14,
+        gap: 14,
+    },
+    orderImageContainer: {
+        width: 70,
+        height: 70,
+        borderRadius: 12,
+        backgroundColor: '#EDF1F7',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+    },
+    orderImage: {
+        width: 55,
+        height: 55,
+    },
+    orderDetails: {
+        flex: 1,
+        justifyContent: 'center',
+    },
+    orderNameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 4,
+    },
+    orderName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1a2632',
+    },
+    orderStatusBadge: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
+    orderStatusOngoing: {
+        backgroundColor: '#E6F7ED',
+    },
+    orderStatusDelivered: {
+        backgroundColor: '#FFF0F0',
+    },
+    orderStatusText: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    orderStatusTextOngoing: {
+        color: '#2E7D4F',
+    },
+    orderStatusTextDelivered: {
+        color: '#E04040',
+    },
+    orderQty: {
+        fontSize: 13,
+        color: '#8B9DB8',
+        marginBottom: 4,
+    },
+    orderViewDetails: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#2E7D4F',
+    },
+    orderFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#E8EEF5',
+    },
+    orderDateLabel: {
+        fontSize: 13,
+        color: '#8B9DB8',
+    },
+    orderDateValue: {
+        color: '#1a2632',
+        fontWeight: '600',
+    },
+    orderDispatch: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#1a2632',
+    },
+    // Payment Modal Styles
+    paymentScrollContent: {
+        paddingHorizontal: 16,
+        paddingVertical: 20,
+        paddingBottom: 50,
+    },
+    paymentSectionTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1a2632',
+        marginBottom: 16,
+    },
+    paymentCardItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#F5F7FA',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#E8EEF5',
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        marginBottom: 12,
+    },
+    paymentCardLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 14,
+    },
+    paymentCardLogoContainer: {
+        width: 44,
+        height: 34,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    mastercardLogo: {
+        flexDirection: 'row',
+        width: 40,
+        height: 26,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    mcCircle: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+    },
+    mcRed: {
+        backgroundColor: '#EB001B',
+        marginRight: -6,
+        zIndex: 1,
+    },
+    mcOrange: {
+        backgroundColor: '#F79E1B',
+        opacity: 0.85,
+    },
+    visaLogo: {
+        fontSize: 18,
+        fontWeight: '800',
+        fontStyle: 'italic',
+        color: '#1A1F71',
+    },
+    paymentCardNumber: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1a2632',
+    },
+    paymentCardExpiry: {
+        fontSize: 13,
+        color: '#8B9DB8',
+        marginTop: 2,
+    },
+    radioOuter: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: '#C4CDD5',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    radioOuterSelected: {
+        borderColor: '#0F1B28',
+    },
+    radioInner: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#0F1B28',
+    },
+    addNewCardLink: {
+        alignSelf: 'flex-end',
+        marginBottom: 8,
+    },
+    addNewCardText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#0F1B28',
+    },
+    walletContainer: {
+        backgroundColor: '#F5F7FA',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#E8EEF5',
+        overflow: 'hidden',
+    },
+    walletItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 18,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E8EEF5',
+    },
+    walletItemLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 14,
+    },
+    walletIconContainer: {
+        width: 36,
+        height: 36,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    paypalIcon: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#003087',
+    },
+    applePayIcon: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#000000',
+    },
+    walletItemText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#1a2632',
+    },
+    // Add Card Modal Styles
+    addCardScrollContent: {
+        paddingHorizontal: 16,
+        paddingVertical: 20,
+    },
+    addCardLabel: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1a2632',
+        marginBottom: 10,
+    },
+    addCardInput: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F7FA',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E8EEF5',
+        paddingHorizontal: 14,
+        height: 50,
+    },
+    addCardTextInput: {
+        flex: 1,
+        fontSize: 15,
+        color: '#1a2632',
+        paddingVertical: 0,
+    },
+    addCardRow: {
+        flexDirection: 'row',
+    },
+    addCardFooter: {
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        paddingBottom: Platform.OS === 'ios' ? 30 : 16,
+    },
+    addCardButton: {
+        height: 54,
+        borderRadius: 14,
+        backgroundColor: '#0F1B28',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addCardButtonText: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#FFFFFF',
+    },
+    // Address Modal Styles
+    addressScrollContent: {
+        paddingHorizontal: 16,
+        paddingVertical: 20,
+        paddingBottom: 50,
+        gap: 16,
+    },
+    addressCard: {
+        backgroundColor: '#F5F7FA',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#E8EEF5',
+        padding: 18,
+    },
+    addressHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 10,
+    },
+    addressLabel: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#1a2632',
+    },
+    addressText: {
+        fontSize: 15,
+        color: '#1a2632',
+        lineHeight: 22,
+        marginLeft: 34,
+        marginBottom: 6,
+    },
+    addressPhone: {
+        fontSize: 14,
+        color: '#8B9DB8',
+        marginLeft: 34,
+    },
+    addressFooter: {
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        paddingBottom: Platform.OS === 'ios' ? 30 : 16,
+    },
+    addressApplyButton: {
+        height: 54,
+        borderRadius: 14,
+        backgroundColor: '#0F1B28',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addressApplyText: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: '#FFFFFF',
+    },
+    addressEditBtn: {
+        width: 34,
+        height: 34,
+        borderRadius: 10,
+        backgroundColor: '#FFFFFF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E8EEF5',
+    },
+    editAddrScrollContent: {
+        paddingHorizontal: 16,
+        paddingVertical: 20,
+    },
+    // Language Modal Styles
+    langItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E8EEF5',
+    },
+    langText: {
         fontSize: 16,
         fontWeight: '600',
         color: '#1a2632',

@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -53,6 +54,7 @@ export default function CategoriesScreen() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const { isDarkMode, colors } = useTheme();
+    const { t } = useLanguage();
 
     const filteredData = CATEGORIES_DATA.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -69,7 +71,7 @@ export default function CategoriesScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.text }]}>Categories</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t.categories}</Text>
                 <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
                     <Ionicons name="notifications-outline" size={24} color={colors.text} />
                     <View style={styles.notificationBadge} />
@@ -82,7 +84,7 @@ export default function CategoriesScreen() {
                     <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
                     <TextInput
                         style={[styles.searchInput, { color: colors.text }]}
-                        placeholder="Search here..."
+                        placeholder={t.searchHere}
                         placeholderTextColor={colors.textSecondary}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
@@ -106,7 +108,7 @@ export default function CategoriesScreen() {
                         <View style={styles.cardContent}>
                             <View>
                                 <Text style={[styles.categoriesTitle, { color: colors.text }]}>{item.title}</Text>
-                                <Text style={[styles.categoriesSubtitle, { color: colors.textSecondary }]}>Total {item.count} items available</Text>
+                                <Text style={[styles.categoriesSubtitle, { color: colors.textSecondary }]}>Total {item.count} {t.totalItems}</Text>
                             </View>
                             <Ionicons name="arrow-forward" size={24} color={colors.text} />
                         </View>

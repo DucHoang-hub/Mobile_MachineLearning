@@ -1,3 +1,4 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
@@ -71,22 +72,23 @@ export default function HomeScreen() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { addToCart } = useCart();
   const { isDarkMode, colors } = useTheme();
+  const { t } = useLanguage();
   const categoryTitle = params.title as string || "Products";
   const scrollRef = useRef<ScrollView>(null);
   const renderStarRating = (rating: number) => {
     return (
       <View style={styles.ratingContainer}>
         <Ionicons name="star" size={12} color="#FFB800" />
-        <Text style={[styles.ratingText, {color: colors.text}]}>{rating}</Text>
+        <Text style={[styles.ratingText, { color: colors.text }]}>{rating}</Text>
       </View>
     );
   };
 
   const handleQuickAddToCart = (item: any, e: any) => {
     e.stopPropagation();
-    
+
     const cartItem = {
-      id: item.id, 
+      id: item.id,
       category: 'Home',
       name: item.name,
       price: item.price,
@@ -98,9 +100,9 @@ export default function HomeScreen() {
     };
     addToCart(cartItem);
   };
-  const handleCategoryPress = (id: string, index: number) =>{
+  const handleCategoryPress = (id: string, index: number) => {
     setActiveCategory(id);
-    if(scrollRef.current){
+    if (scrollRef.current) {
       scrollRef.current.scrollTo({
         x: index * 80,
         animated: true,
@@ -110,7 +112,7 @@ export default function HomeScreen() {
   const rendersItem1 = (section: string) => ({ item }: { item: Product }) => {
     const isFavorited = isFavorite(item.id);
     return (
-      <View style={[styles.card, {backgroundColor: colors.background}]}>
+      <View style={[styles.card, { backgroundColor: colors.background }]}>
         <View style={styles.cardImageContainer}>
           <TouchableOpacity
             style={styles.favoriteButton}
@@ -124,19 +126,19 @@ export default function HomeScreen() {
             />
           </TouchableOpacity>
           <Image source={item.image} resizeMode='contain' style={styles.cardImage} />
-          <TouchableOpacity 
-            style={[styles.addButton, {backgroundColor: colors.primary}]}
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: colors.primary }]}
             onPress={(e) => handleQuickAddToCart(item, e)}
-            >
+          >
             <Ionicons name="bag-handle-outline" size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
         <View style={styles.cardContent}>
-          <Text style={[styles.cardTitle, {color: colors.text}]}>{item.name}</Text>
-          <Text style={[styles.cardDescription, {color: colors.textSecondary}]}>{item.description}</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{item.name}</Text>
+          <Text style={[styles.cardDescription, { color: colors.textSecondary }]}>{item.description}</Text>
           <View style={styles.cardFooter}>
             <View style={styles.priceContainer}>
-              <Text style={[styles.price, {color: colors.text}]}>${item.price}</Text>
+              <Text style={[styles.price, { color: colors.text }]}>${item.price}</Text>
               {item.oldPrice && <Text style={styles.oldPrice}>${item.oldPrice}</Text>}
             </View>
             {renderStarRating(item.rating)}
@@ -146,7 +148,7 @@ export default function HomeScreen() {
     )
   };
   const renderItem2 = ({ item }: { item: Product }) => (
-    <View style={[styles.offerCard, {backgroundColor: colors.background}]}>
+    <View style={[styles.offerCard, { backgroundColor: colors.background }]}>
       {/* Image */}
       <View style={styles.offerImageBox}>
         <Image source={item.image} style={styles.offerImage} />
@@ -155,16 +157,16 @@ export default function HomeScreen() {
       {/* Content */}
       <View style={styles.offerContent}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={[styles.offerTitle, {color: colors.text}]}>{item.name}</Text>
+          <Text style={[styles.offerTitle, { color: colors.text }]}>{item.name}</Text>
           {renderStarRating(item.rating)}
         </View>
 
-        <Text style={[styles.offerDesc, {color: colors.textSecondary}]} numberOfLines={1}>
+        <Text style={[styles.offerDesc, { color: colors.textSecondary }]} numberOfLines={1}>
           {item.description}
         </Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={[styles.offerPrice, {color: colors.text}]}>${item.price}</Text>
+          <Text style={[styles.offerPrice, { color: colors.text }]}>${item.price}</Text>
           {item.discount && (
             <Text style={styles.trendingPriceOld}>{item.discount}</Text>
           )}
@@ -172,8 +174,8 @@ export default function HomeScreen() {
       </View>
 
       {/* Add to cart */}
-      <TouchableOpacity 
-        style={[styles.offerAddButton, {backgroundColor: colors.primary}]}
+      <TouchableOpacity
+        style={[styles.offerAddButton, { backgroundColor: colors.primary }]}
         onPress={(e) => handleQuickAddToCart(item, e)}
       >
         <Ionicons name="bag-outline" size={18} color="#FFF" />
@@ -198,7 +200,7 @@ export default function HomeScreen() {
             style={styles.avatar}
           />
           <View>
-            <Text style={[styles.helloText, { color: colors.textSecondary }]}>Hello</Text>
+            <Text style={[styles.helloText, { color: colors.textSecondary }]}>{t.hello}</Text>
             <Text style={[styles.userName, { color: colors.text }]}>{userName}</Text>
           </View>
         </View>
@@ -215,7 +217,7 @@ export default function HomeScreen() {
           <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search here..."
+            placeholder={t.searchHere}
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -231,16 +233,16 @@ export default function HomeScreen() {
         <View style={styles.bannerContainer}>
           <View style={styles.bannerYellowBackground} />
           <View style={styles.bannerContent}>
-            <Text style={styles.bannerTitle}>Best Selling</Text>
-            <Text style={styles.bannerSubtitle}>Comforts & Modern{"\n"}Life Stylish Sofa</Text>
+            <Text style={styles.bannerTitle}>{t.bestSelling}</Text>
+            <Text style={styles.bannerSubtitle}>{t.comfortsModern}</Text>
             <TouchableOpacity style={styles.bannerButton}>
-              <Text style={styles.bannerButtonText}>View More</Text>
+              <Text style={styles.bannerButtonText}>{t.viewMore}</Text>
               <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
           <Image source={BEST_SELLING_IMAGE} style={styles.bannerImage} />
           <View style={styles.promoTag}>
-            <Text style={styles.promoText}>MEGA SALE{"\n"}50% OFF</Text>
+            <Text style={styles.promoText}>{t.megaSale}</Text>
           </View>
         </View>
 
@@ -275,8 +277,8 @@ export default function HomeScreen() {
 
         {/* New Arrivals */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>New Arrivals</Text>
-          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text></TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.newArrivals}</Text>
+          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{t.viewAll}</Text></TouchableOpacity>
         </View>
         <FlatList
           data={NEW_ARRIVALS}
@@ -291,8 +293,8 @@ export default function HomeScreen() {
 
         {/* Trending Furniture */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Trending Furniture</Text>
-          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text></TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.trending}</Text>
+          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{t.viewAll}</Text></TouchableOpacity>
         </View>
         <FlatList
           data={TRENDING}
@@ -305,18 +307,18 @@ export default function HomeScreen() {
         <View style={styles.secondBanner}>
           <Image source={SECOND_BANNER_IMAGE} style={styles.secondBannerImage} resizeMode="cover" />
           <View style={styles.secondBannerOverlay}>
-            <Text style={styles.secondBannerTitle}>Best Selling</Text>
-            <Text style={styles.secondBannerSubtitle}>Comforts & Modern{"\n"}Life Stylish Sofa</Text>
+            <Text style={styles.secondBannerTitle}>{t.bestSelling}</Text>
+            <Text style={styles.secondBannerSubtitle}>{t.comfortsModern}</Text>
             <TouchableOpacity style={styles.bannerButton}>
-              <Text style={styles.bannerButtonText}>View More</Text>
+              <Text style={styles.bannerButtonText}>{t.viewMore}</Text>
               <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
         {/* Offer Zone */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Offer Zone</Text>
-          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text></TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.offerZone}</Text>
+          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{t.viewAll}</Text></TouchableOpacity>
         </View>
         <FlatList
           data={OFFER_ZONE}
@@ -326,8 +328,8 @@ export default function HomeScreen() {
         />
         {/* Furniture And Decor */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Furniture And Decor</Text>
-          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>View All</Text></TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.furnitureDecor}</Text>
+          <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{t.viewAll}</Text></TouchableOpacity>
         </View>
         <FlatList
           data={FURNITURE_DECOR}
@@ -348,7 +350,7 @@ export default function HomeScreen() {
             <View style={styles.promoContent}>
               <Text style={styles.promoTitle}>Wingback{"\n"}Chair</Text>
               <TouchableOpacity style={styles.promoButton}>
-                <Text style={styles.promoButtonText}>View More</Text>
+                <Text style={styles.promoButtonText}>{t.viewMore}</Text>
                 <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
@@ -360,7 +362,7 @@ export default function HomeScreen() {
             <View style={styles.promoContent}>
               <Text style={styles.promoTitle}>Wingback{"\n"}Chair</Text>
               <TouchableOpacity style={styles.promoButton}>
-                <Text style={styles.promoButtonText}>View More</Text>
+                <Text style={styles.promoButtonText}>{t.viewMore}</Text>
                 <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
