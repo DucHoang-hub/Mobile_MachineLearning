@@ -2,7 +2,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Image, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, Platform, Pressable, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const CATEGORIES_DATA = [
     {
@@ -76,19 +76,6 @@ export default function CategoriesScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* Search */}
-            <View style={styles.searchSection}>
-                <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
-                    <TextInput
-                        style={[styles.searchInput, { color: colors.text }]}
-                        placeholder="Search here..."
-                        placeholderTextColor={colors.textSecondary}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                </View>
-            </View>
             {/* Card Categories */}
             <FlatList
                 data={filteredData}
@@ -166,31 +153,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#FF4444',
         borderWidth: 1.5,
         borderColor: '#FFFFFF',
-    },
-    searchSection: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        marginTop: 10,
-        gap: 10,
-        marginBottom: 10,
-    },
-    searchContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        paddingHorizontal: 15,
-        height: 48,
-        borderColor: '#E2E8F0'
-    },
-    searchIcon: {
-        marginRight: 10,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 14,
-        color: '#1a2632',
     },
     listContent: {
         paddingHorizontal: 20,

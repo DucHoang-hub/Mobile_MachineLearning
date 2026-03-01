@@ -120,7 +120,7 @@ export default function CategoryProductsScreen() {
             <View style={[styles.header, { backgroundColor: colors.surface }]}>
                 <TouchableOpacity
                     style={[styles.backButton, { backgroundColor: colors.surfaceSecondary }]}
-                    onPress={() => router.push('/(tabs)/categories')}
+                    onPress={() => router.back()}
                 >
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>

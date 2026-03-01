@@ -1,7 +1,22 @@
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
-import { Dimensions, FlatList, Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -23,12 +38,12 @@ interface Category {
 
 // Mock Data
 const CATEGORIES: Category[] = [
-  { id: '1', name: 'Sofa', icon: 'sofa' },
-  { id: '2', name: 'Chair', icon: 'chair-rolling' },
-  { id: '3', name: 'Table', icon: 'table-furniture' },
+  { id: '1', name: 'Sofas', icon: 'sofa' },
+  { id: '2', name: 'Chairs', icon: 'chair-rolling' },
+  { id: '3', name: 'Tables', icon: 'table-furniture' },
   { id: '4', name: 'Cabinets', icon: 'file-cabinet' },
-  { id: '5', name: 'Cupboard', icon: 'wardrobe' },
-  { id: '6', name: 'Lamp', icon: 'floor-lamp' },
+  { id: '5', name: 'Cupboards', icon: 'wardrobe' },
+  { id: '6', name: 'Lamps', icon: 'floor-lamp' },
 ];
 
 const BEST_SELLING_IMAGE = require('../../assets/images/screen3_img11.png');
@@ -39,7 +54,7 @@ const WINGBACK_CHAIR_2 = require('../../assets/images/screen3_img16.png');
 import { PRODUCTS_DATA } from '@/constants/data';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const NEW_ARRIVALS = [
   PRODUCTS_DATA['Chairs'][0],
@@ -70,9 +85,12 @@ export default function HomeScreen() {
   const userName = "Hoang Duc";
   const { isFavorite, toggleFavorite } = useFavorites();
   const { addToCart } = useCart();
-  const { isDarkMode, colors } = useTheme();
-  const categoryTitle = params.title as string || "Products";
+  const { isDarkMode, colors, setDarkMode } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [isRTL, setIsRTL] = useState(false);
+  const router = useRouter();
+  const slideAnim = useRef(new Animated.Value(-width)).current;
   const renderStarRating = (rating: number) => {
     return (
       <View style={styles.ratingContainer}>
@@ -98,21 +116,35 @@ export default function HomeScreen() {
     };
     addToCart(cartItem);
   };
-  const handleCategoryPress = (id: string, index: number) =>{
-    setActiveCategory(id);
+  const handleCategoryPress = (category: Category, index: number) =>{
+    setActiveCategory(category.id);
     if(scrollRef.current){
       scrollRef.current.scrollTo({
         x: index * 80,
         animated: true,
       });
     }
+
+    router.push({
+      pathname: '/category-products',
+      params: {
+         title: category.name
+      }
+    })
   };
   const rendersItem1 = (section: string) => ({ item }: { item: Product }) => {
     const isFavorited = isFavorite(item.id);
     return (
-      <View style={[styles.card, {backgroundColor: colors.background}]}>
-        <View style={styles.cardImageContainer}>
-          <TouchableOpacity
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => router.push({
+            pathname: '/product-detail',
+            params: { id: item.id, category: 'Chairs'}
+          })}
+          style={[styles.card, {backgroundColor: colors.background}]}
+        >
+          <View style={styles.cardImageContainer}>
+           <TouchableOpacity
             style={styles.favoriteButton}
             onPress={() => toggleFavorite(item.id)}
             activeOpacity={0.7}
@@ -142,11 +174,19 @@ export default function HomeScreen() {
             {renderStarRating(item.rating)}
           </View>
         </View>
-      </View>
+
+        </TouchableOpacity>
     )
   };
   const renderItem2 = ({ item }: { item: Product }) => (
-    <View style={[styles.offerCard, {backgroundColor: colors.background}]}>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={() => router.push({
+        pathname: '/product-detail',
+        params: {id: item.id, category: 'Chairs'}
+      })}
+      style={[styles.offerCard, {backgroundColor: colors.background}]}
+    >
       {/* Image */}
       <View style={styles.offerImageBox}>
         <Image source={item.image} style={styles.offerImage} />
@@ -178,9 +218,50 @@ export default function HomeScreen() {
       >
         <Ionicons name="bag-outline" size={18} color="#FFF" />
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
+      
   );
 
+  const openMenu = () =>{
+    setMenuVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closedMenu = () => {
+    Animated.timing(slideAnim, {
+      toValue: -width,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setMenuVisible(false));
+  };
+  interface MenuItemProps{
+    label: string;
+    value?: boolean;
+    onValueChange?: (val: boolean) => void;
+    type: 'switch' | 'link';
+    colors: any;
+    isLast?: boolean;
+  }
+  const MenuItem=({label, value, onValueChange, type, colors, isLast}: MenuItemProps) =>(
+    <TouchableOpacity
+      style={[styles.menuItem, !isLast && {borderBottomWidth: 1, borderBottomColor: 'F0F0F0'}]}
+      disabled={type === "switch"}
+    >
+      <Text style={[styles.menuItemText, {color: colors.text}]}>{label}</Text>
+      {type === 'switch' && (
+        <Switch
+          value={value}
+          onValueChange={onValueChange}
+          trackColor={{false: "#444", true: colors.primary }}
+          thumbColor={'#FFFFFF'}
+        />
+      )}
+    </TouchableOpacity>
+  );  
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -188,9 +269,80 @@ export default function HomeScreen() {
 
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.background }]}>
-        <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity 
+          style={[styles.iconButton, { backgroundColor: colors.surface }]}
+          onPress={openMenu}
+        >
           <Ionicons name="menu" size={24} color={colors.text} />
-        </TouchableOpacity>
+        </TouchableOpacity>   
+        <Modal
+          transparent = {true}
+          visible ={menuVisible}
+          onRequestClose={closedMenu}
+        >
+          <View style={styles.modalOverlay}>
+            <TouchableOpacity
+              style={StyleSheet.absoluteFill}
+              activeOpacity={1}
+              onPress={closedMenu}
+            ></TouchableOpacity>
+          </View>
+          <Animated.View
+            style={[
+              styles.menuContainer,
+              {
+                backgroundColor: colors.background,
+                transform: [{translateX: slideAnim}]
+              }
+            ]}  
+            >
+              <View style={styles.menuHeader}>
+                <View style={styles.profileRow}>
+                  <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500' }}
+                    style={styles.menuAvatar}
+                  />
+                  <Text style={[styles.menuHello, {color: colors.text}]}>Hello, Hoang Duc</Text> 
+                </View>
+                <TouchableOpacity onPress={()=> setMenuVisible(false)}>
+                  <Ionicons name='close' size={24} color={colors.textSecondary}/>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.menuContent}>
+                <MenuItem 
+                  label="Dark"
+                  value={isDarkMode}
+                  onValueChange={(val) => setDarkMode(val)}
+                  type="switch"
+                  colors={colors}
+                  isLast={false}
+                />
+                <TouchableOpacity
+                  style={[styles.menuItem, {borderBottomWidth: 1, borderBlockColor: colors.border || '#F0F0F0'}]}
+                  onPress={() => {
+                    closedMenu();
+                    router.replace('/page-listing');
+                  }}
+                >
+                  <Text style={[styles.menuItemText, {color: colors.text}]}>Page List</Text>
+                  <Ionicons name="chevron-forward" size={18} color={colors.textSecondary}/>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.menuItem}
+                  onPress={() => {
+                    closedMenu();
+                    router.replace('/login');
+                  }}
+                >
+                  <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                    <Ionicons name="log-out-outline" size={20} color={colors.text}/>
+                    <Text style={[styles.menuItemText, {color: colors.text}]}>Logout</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+        </Modal>
 
         <View style={styles.userInfo}>
           <Image
@@ -256,7 +408,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={cat.id}
               style={[styles.categoryChip, activeCategory === cat.id && styles.activeCategoryChip]}
-              onPress={() => handleCategoryPress(cat.id, index)}
+              onPress={() => handleCategoryPress(cat, index)}
             >
               {activeCategory === cat.id && (
                 <MaterialCommunityIcons
@@ -827,4 +979,58 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginRight: 8,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    flexDirection: 'row',
+  },
+  menuContainer: {
+    width: width * 0.75,
+    height:'100%',
+    paddingTop: Platform.OS ==='ios' ? 60: 50,
+    paddingHorizontal: 20,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {width: 4, height: 0},
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  menuAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  menuHello: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  menuContent: {
+    marginTop: 10,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 18,
+  },
+  menuItemText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  logoutButton: {
+    
+  }
 });

@@ -2,14 +2,31 @@ import { useCart } from '@/contexts/CartContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Image, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRef, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Image,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
 
 export default function CartScreen() {
     const router = useRouter();
     const { cartItems, removeFromCart, updateQuantity, getTotalPrice } = useCart();
     const { isDarkMode, colors } = useTheme();
+    const [ menuVisible, setMenuVisible ] = useState(false);
 
-    const totalPrice = getTotalPrice();
+
+    const {width} = Dimensions.get('window');
+    const slideAmin = useRef(new Animated.Value(-width)).current;
+
+    const totalPrice = getTotalPrice();    
 
     const handleQuantityChange = (id: string, color: string, currentQty: number, increment: boolean) => {
         if (increment) {
@@ -18,6 +35,15 @@ export default function CartScreen() {
             updateQuantity(id, color, currentQty - 1);
         }
     };
+
+    const closedMenu = () => {
+        setMenuVisible(true);
+        Animated.timing(slideAmin, {
+            toValue: -width,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => setMenuVisible(false));
+    }
 
     if (cartItems.length === 0) {
         return (
@@ -54,7 +80,7 @@ export default function CartScreen() {
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.title, { color: colors.text }]}>Cart</Text>
-                <View style={styles.backButton} />
+                <View style={{ width: 40 }} />                                                                                                                                              
             </View>
 
             {/* Cart Items */}
@@ -143,8 +169,8 @@ export default function CartScreen() {
                 <TouchableOpacity
                     style={[styles.checkoutButton, { backgroundColor: colors.primary }]}
                     onPress={() => {
-                        // Navigate to checkout screen (to be implemented)
-                        console.log('Checkout pressed');
+                        closedMenu(),
+                        router.replace('/check_out');
                     }}
                 >
                     <Text style={[styles.checkoutText, { color: colors.primaryText }]}>Checkout</Text>
