@@ -1,4 +1,5 @@
 import { useCart } from '@/contexts/CartContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -21,7 +22,7 @@ export default function CartScreen() {
     const { cartItems, removeFromCart, updateQuantity, getTotalPrice } = useCart();
     const { isDarkMode, colors } = useTheme();
     const [ menuVisible, setMenuVisible ] = useState(false);
-
+    const { t } = useLanguage();
 
     const {width} = Dimensions.get('window');
     const slideAmin = useRef(new Animated.Value(-width)).current;
@@ -50,17 +51,17 @@ export default function CartScreen() {
             <View style={[styles.container, { backgroundColor: colors.background }]}>
                 <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
                 <View style={[styles.header, { backgroundColor: colors.surface }]}>
-                    <Text style={[styles.title, { color: colors.text, textAlign: 'center' }]}>Cart</Text>
+                    <Text style={[styles.title, { color: colors.text, textAlign: 'center' }]}>{t.cart}</Text>
                 </View>
                 <View style={styles.emptyContent}>
                     <Ionicons name="bag-handle-outline" size={64} color={colors.textSecondary} />
-                    <Text style={[styles.emptyText, { color: colors.text }]}>Your Cart is Empty</Text>
-                    <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Add items to start shopping</Text>
+                    <Text style={[styles.emptyText, { color: colors.text }]}>{t.emptyCart}</Text>
+                    <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>{t.emptyCartMsg}</Text>
                     <TouchableOpacity
                         style={[styles.shopNowButton, { backgroundColor: colors.primary }]}
                         onPress={() => router.push('/(tabs)/categories')}
                     >
-                        <Text style={[styles.shopNowText, { color: colors.primaryText }]}>Shop Now</Text>
+                        <Text style={[styles.shopNowText, { color: colors.primaryText }]}>{t.startShopping}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -79,8 +80,8 @@ export default function CartScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.text }]}>Cart</Text>
-                <View style={{ width: 40 }} />                                                                                                                                              
+                <Text style={[styles.title, { color: colors.text }]}>{t.cart}</Text>
+                <View style={{ width: 40 }} />
             </View>
 
             {/* Cart Items */}
@@ -115,7 +116,7 @@ export default function CartScreen() {
                             </View>
 
                             <View style={styles.detailsRow}>
-                                <Text style={[styles.qtyLabel, { color: colors.textSecondary }]}>Qty : {item.quantity}</Text>
+                                <Text style={[styles.qtyLabel, { color: colors.textSecondary }]}>{t.qty} : {item.quantity}</Text>
                                 <View style={styles.colorIndicator}>
                                     <View
                                         style={[
@@ -162,7 +163,7 @@ export default function CartScreen() {
             {/* Bottom Total and Checkout */}
             <View style={[styles.bottomBar, { backgroundColor: colors.surface }]}>
                 <View style={styles.totalSection}>
-                    <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>Total price</Text>
+                    <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{t.total}</Text>
                     <Text style={[styles.totalPrice, { color: colors.text }]}>${totalPrice.toFixed(2)}</Text>
                 </View>
 
@@ -173,7 +174,7 @@ export default function CartScreen() {
                         router.replace('/check_out');
                     }}
                 >
-                    <Text style={[styles.checkoutText, { color: colors.primaryText }]}>Checkout</Text>
+                    <Text style={[styles.checkoutText, { color: colors.primaryText }]}>{t.checkout}</Text>
                 </TouchableOpacity>
             </View>
         </View>

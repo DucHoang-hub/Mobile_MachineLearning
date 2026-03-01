@@ -15,6 +15,7 @@ import {
 import { PRODUCTS_DATA, SIMILAR_PRODUCTS } from '@/constants/data';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
 // Helper to flatten products or find by ID
@@ -31,6 +32,7 @@ export default function FavoritesScreen() {
     const { favorites, toggleFavorite } = useFavorites();
     const { addToCart } = useCart();
     const { isDarkMode, colors } = useTheme();
+    const { t } = useLanguage();
 
     const allProducts = getAllProducts();
     const favoriteProducts = allProducts.filter((p) => favorites.includes(p.id));
@@ -72,7 +74,7 @@ export default function FavoritesScreen() {
                     </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.qtyText, { color: colors.textSecondary }]}>Qty: 1</Text>
+                <Text style={[styles.qtyText, { color: colors.textSecondary }]}>{t.qty}: 1</Text>
 
                 <View style={styles.priceRow}>
                     <View style={styles.prices}>
@@ -100,7 +102,7 @@ export default function FavoritesScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.text }]}>Wishlist</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t.wishlist}</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -115,9 +117,9 @@ export default function FavoritesScreen() {
             ) : (
                 <View style={styles.emptyContainer}>
                     <Ionicons name="heart-outline" size={64} color={colors.textSecondary} />
-                    <Text style={[styles.emptyText, { color: colors.text }]}>Your wishlist is empty</Text>
+                    <Text style={[styles.emptyText, { color: colors.text }]}>{t.emptyWishlist}</Text>
                     <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-                        Save items you love to find them easily later.
+                        {t.emptyWishlistMsg}
                     </Text>
                 </View>
             )}

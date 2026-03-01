@@ -1,8 +1,9 @@
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Image, Platform, Pressable, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const CATEGORIES_DATA = [
     {
@@ -53,6 +54,7 @@ export default function CategoriesScreen() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const { isDarkMode, colors } = useTheme();
+    const { t } = useLanguage();
 
     const filteredData = CATEGORIES_DATA.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -69,13 +71,26 @@ export default function CategoriesScreen() {
                 >
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={[styles.title, { color: colors.text }]}>Categories</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{t.categories}</Text>
                 <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
                     <Ionicons name="notifications-outline" size={24} color={colors.text} />
                     <View style={styles.notificationBadge} />
                 </TouchableOpacity>
             </View>
 
+            {/* Search */}
+            <View style={styles.searchSection}>
+                <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+                    <TextInput
+                        style={[styles.searchInput, { color: colors.text }]}
+                        placeholder={t.searchHere}
+                        placeholderTextColor={colors.textSecondary}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                </View>
+            </View>
             {/* Card Categories */}
             <FlatList
                 data={filteredData}
@@ -93,7 +108,7 @@ export default function CategoriesScreen() {
                         <View style={styles.cardContent}>
                             <View>
                                 <Text style={[styles.categoriesTitle, { color: colors.text }]}>{item.title}</Text>
-                                <Text style={[styles.categoriesSubtitle, { color: colors.textSecondary }]}>Total {item.count} items available</Text>
+                                <Text style={[styles.categoriesSubtitle, { color: colors.textSecondary }]}>Total {item.count} {t.totalItems}</Text>
                             </View>
                             <Ionicons name="arrow-forward" size={24} color={colors.text} />
                         </View>
@@ -198,5 +213,27 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1a2632',
         marginBottom: 4,
+    },
+    searchSection: {
+        paddingHorizontal: 20,
+        marginBottom: 10,
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F7FA',
+        borderRadius: 12,
+        paddingHorizontal: 15,
+        height: 48,
+        borderWidth: 1,
+        borderColor: '#E8ECF0',
+    },
+    searchIcon: {
+        marginRight: 10,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 14,
+        color: '#1a2632',
     },
 });

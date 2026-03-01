@@ -5,6 +5,7 @@ import 'react-native-reanimated';
 
 import { CartProvider } from '@/contexts/CartContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
 
 export const unstable_settings = {
@@ -35,11 +36,13 @@ function RootLayoutContent() {
 export default function RootLayout() {
   return (
     <AppThemeProvider>
-      <CartProvider>
-        <FavoritesProvider>
-          <RootLayoutContent />
-        </FavoritesProvider>
-      </CartProvider>
+      <LanguageProvider>
+        <CartProvider>
+          <FavoritesProvider>
+            <RootLayoutContent />
+          </FavoritesProvider>
+        </CartProvider>
+      </LanguageProvider>
     </AppThemeProvider>
   );
 }
