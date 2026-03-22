@@ -3,20 +3,20 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useRef, useState } from 'react';
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -131,23 +131,23 @@ export default function HomeScreen() {
     router.push({
       pathname: '/category-products',
       params: {
-         title: category.name
+        title: category.name
       }
     })
   };
   const rendersItem1 = (section: string) => ({ item }: { item: Product }) => {
     const isFavorited = isFavorite(item.id);
     return (
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={() => router.push({
-            pathname: '/product-detail',
-            params: { id: item.id, category: 'Chairs'}
-          })}
-          style={[styles.card, {backgroundColor: colors.background}]}
-        >
-          <View style={styles.cardImageContainer}>
-           <TouchableOpacity
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => router.push({
+          pathname: '/product-detail',
+          params: { id: item.id, category: 'Chairs' }
+        })}
+        style={[styles.card, { backgroundColor: colors.background }]}
+      >
+        <View style={styles.cardImageContainer}>
+          <TouchableOpacity
             style={styles.favoriteButton}
             onPress={() => toggleFavorite(item.id)}
             activeOpacity={0.7}
@@ -178,7 +178,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        </TouchableOpacity>
+      </TouchableOpacity>
     )
   };
   const renderItem2 = ({ item }: { item: Product }) => (
@@ -186,9 +186,9 @@ export default function HomeScreen() {
       activeOpacity={0.9}
       onPress={() => router.push({
         pathname: '/product-detail',
-        params: {id: item.id, category: 'Chairs'}
+        params: { id: item.id, category: 'Chairs' }
       })}
-      style={[styles.offerCard, {backgroundColor: colors.background}]}
+      style={[styles.offerCard, { backgroundColor: colors.background }]}
     >
       {/* Image */}
       <View style={styles.offerImageBox}>
@@ -222,10 +222,10 @@ export default function HomeScreen() {
         <Ionicons name="bag-outline" size={18} color="#FFF" />
       </TouchableOpacity>
     </TouchableOpacity>
-      
+
   );
 
-  const openMenu = () =>{
+  const openMenu = () => {
     setMenuVisible(true);
     Animated.timing(slideAnim, {
       toValue: 0,
@@ -241,7 +241,7 @@ export default function HomeScreen() {
       useNativeDriver: true,
     }).start(() => setMenuVisible(false));
   };
-  interface MenuItemProps{
+  interface MenuItemProps {
     label: string;
     value?: boolean;
     onValueChange?: (val: boolean) => void;
@@ -249,22 +249,22 @@ export default function HomeScreen() {
     colors: any;
     isLast?: boolean;
   }
-  const MenuItem=({label, value, onValueChange, type, colors, isLast}: MenuItemProps) =>(
+  const MenuItem = ({ label, value, onValueChange, type, colors, isLast }: MenuItemProps) => (
     <TouchableOpacity
-      style={[styles.menuItem, !isLast && {borderBottomWidth: 1, borderBottomColor: 'F0F0F0'}]}
+      style={[styles.menuItem, !isLast && { borderBottomWidth: 1, borderBottomColor: 'F0F0F0' }]}
       disabled={type === "switch"}
     >
-      <Text style={[styles.menuItemText, {color: colors.text}]}>{label}</Text>
+      <Text style={[styles.menuItemText, { color: colors.text }]}>{label}</Text>
       {type === 'switch' && (
         <Switch
           value={value}
           onValueChange={onValueChange}
-          trackColor={{false: "#444", true: colors.primary }}
+          trackColor={{ false: "#444", true: colors.primary }}
           thumbColor={'#FFFFFF'}
         />
       )}
     </TouchableOpacity>
-  );  
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -272,15 +272,15 @@ export default function HomeScreen() {
 
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.background }]}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.iconButton, { backgroundColor: colors.surface }]}
           onPress={openMenu}
         >
           <Ionicons name="menu" size={24} color={colors.text} />
-        </TouchableOpacity>   
+        </TouchableOpacity>
         <Modal
-          transparent = {true}
-          visible ={menuVisible}
+          transparent={true}
+          visible={menuVisible}
           onRequestClose={closedMenu}
         >
           <View style={styles.modalOverlay}>
@@ -295,56 +295,56 @@ export default function HomeScreen() {
               styles.menuContainer,
               {
                 backgroundColor: colors.background,
-                transform: [{translateX: slideAnim}]
+                transform: [{ translateX: slideAnim }]
               }
-            ]}  
-            >
-              <View style={styles.menuHeader}>
-                <View style={styles.profileRow}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500' }}
-                    style={styles.menuAvatar}
-                  />
-                  <Text style={[styles.menuHello, {color: colors.text}]}>Hello, Hoang Duc</Text> 
-                </View>
-                <TouchableOpacity onPress={()=> setMenuVisible(false)}>
-                  <Ionicons name='close' size={24} color={colors.textSecondary}/>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.menuContent}>
-                <MenuItem 
-                  label="Dark"
-                  value={isDarkMode}
-                  onValueChange={(val) => setDarkMode(val)}
-                  type="switch"
-                  colors={colors}
-                  isLast={false}
+            ]}
+          >
+            <View style={styles.menuHeader}>
+              <View style={styles.profileRow}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500' }}
+                  style={styles.menuAvatar}
                 />
-                <TouchableOpacity
-                  style={[styles.menuItem, {borderBottomWidth: 1, borderBlockColor: colors.border || '#F0F0F0'}]}
-                  onPress={() => {
-                    closedMenu();
-                    router.replace('/page-listing');
-                  }}
-                >
-                  <Text style={[styles.menuItemText, {color: colors.text}]}>Page List</Text>
-                  <Ionicons name="chevron-forward" size={18} color={colors.textSecondary}/>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.menuItem}
-                  onPress={() => {
-                    closedMenu();
-                    router.replace('/login');
-                  }}
-                >
-                  <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-                    <Ionicons name="log-out-outline" size={20} color={colors.text}/>
-                    <Text style={[styles.menuItemText, {color: colors.text}]}>Logout</Text>
-                  </View>
-                </TouchableOpacity>
+                <Text style={[styles.menuHello, { color: colors.text }]}>Hello, Hoang Duc</Text>
               </View>
-            </Animated.View>
+              <TouchableOpacity onPress={() => setMenuVisible(false)}>
+                <Ionicons name='close' size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.menuContent}>
+              <MenuItem
+                label="Dark"
+                value={isDarkMode}
+                onValueChange={(val) => setDarkMode(val)}
+                type="switch"
+                colors={colors}
+                isLast={false}
+              />
+              <TouchableOpacity
+                style={[styles.menuItem, { borderBottomWidth: 1, borderBlockColor: colors.border || '#F0F0F0' }]}
+                onPress={() => {
+                  closedMenu();
+                  router.replace('/page-listing' as any);
+                }}
+              >
+                <Text style={[styles.menuItemText, { color: colors.text }]}>Page List</Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  closedMenu();
+                  router.replace('/login');
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Ionicons name="log-out-outline" size={20} color={colors.text} />
+                  <Text style={[styles.menuItemText, { color: colors.text }]}>Logout</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
         </Modal>
 
         <View style={styles.userInfo}>
@@ -989,13 +989,13 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     width: width * 0.75,
-    height:'100%',
-    paddingTop: Platform.OS ==='ios' ? 60: 50,
+    height: '100%',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
     paddingHorizontal: 20,
     borderTopRightRadius: 20,
     borderBottomRightRadius: 20,
     shadowColor: "#000",
-    shadowOffset: {width: 4, height: 0},
+    shadowOffset: { width: 4, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5,
@@ -1034,6 +1034,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   logoutButton: {
-    
+
   }
 });
