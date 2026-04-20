@@ -3,8 +3,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Alert, Image, Modal, Platform, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface OrderItem {
@@ -65,6 +65,24 @@ export default function ProfileScreen() {
     const { isDarkMode, setDarkMode, colors } = useTheme();
     const { language, setLanguage: setSelectedLanguage, t } = useLanguage();
     const selectedLanguage = language;
+
+    const { openModal } = useLocalSearchParams();
+
+    useEffect(() => {
+        if(openModal === 'orders'){
+            setIsOrdersModalVisible(true);
+        } else if (openModal === 'payment'){
+            setIsPaymentModalVisible(true);
+        } else if (openModal === 'help'){
+            setIsHelpModalVisible(true);
+        } else if (openModal === 'language'){
+            setIsLanguageModalVisible(true);
+        } else if (openModal === 'address'){
+            setIsAddressModalVisible(true);
+        }else if (openModal === 'settings'){
+            setIsSettingsModalVisible(true);
+        } 
+    }, [openModal]);
 
     const MENU_ITEMS: MenuItem[] = [
         { id: '1', icon: 'cube-outline', title: t.orders, description: t.ordersDesc },
@@ -491,7 +509,11 @@ export default function ProfileScreen() {
             <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
                 {/* Modal Header */}
                 <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-                    <TouchableOpacity onPress={() => setIsAddressModalVisible(false)}>
+                    <TouchableOpacity 
+                        onPress={() => 
+                            setIsAddressModalVisible(false)
+                        }
+                    >
                         <Ionicons name="chevron-back" size={28} color={colors.text} />
                     </TouchableOpacity>
                     <Text style={[styles.modalTitle, { color: colors.text }]}>{t.savedAddress}</Text>
@@ -542,9 +564,16 @@ export default function ProfileScreen() {
                 <View style={[styles.addressFooter, { backgroundColor: colors.background }]}>
                     <TouchableOpacity
                         style={[styles.addressApplyButton, { backgroundColor: colors.primary }]}
-                        onPress={() => setIsAddressModalVisible(false)}
-                    >
-                        <Text style={[styles.addressApplyText, { color: colors.primaryText }]}>apply</Text>
+                        onPress={() => {
+                            setIsAddressModalVisible(false);
+
+                            setTimeout(() => {
+                                router.push('/payment')
+                            }, 300);
+                        }
+                    }
+                >
+                        <Text style={[styles.addressApplyText, { color: colors.primaryText }]}>Apply</Text>
                     </TouchableOpacity>
                 </View>
             </View>

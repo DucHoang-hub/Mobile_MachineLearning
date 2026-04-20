@@ -25,7 +25,7 @@ export default function CheckoutScreen() {
             <View style={[styles.header, { backgroundColor: colors.surface }]}>
                 <TouchableOpacity
                     style={[styles.iconButton, { backgroundColor: colors.surfaceSecondary }]}
-                    onPress={() => router.replace('/(tabs)')}
+                    onPress={() => router.replace('/(tabs)/cart')}
                 >
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
@@ -121,7 +121,15 @@ export default function CheckoutScreen() {
                 </View>
 
                 {/* Action Button */}
-                <TouchableOpacity style={[styles.paymentButton, { backgroundColor: colors.primary }]}>
+                <TouchableOpacity 
+                    style={[styles.paymentButton, { backgroundColor: colors.primary }]}
+                    onPress={() => {
+                        router.push({
+                            pathname: '/(tabs)/profile',
+                            params: { openModal: 'address'}
+                        })
+                    }}
+                >
                     <Text style={[styles.paymentButtonText, { color: colors.primaryText }]}>Continue to Payment</Text>
                 </TouchableOpacity>
 

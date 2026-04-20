@@ -11,7 +11,18 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-const PAGE_SECTIONS = [
+
+interface PageItem {
+  name: string;
+  route: string;
+  params?: { [key: string]: string}; // dau ? nghia la khong bat buoc phai co
+}
+
+interface PageSection{
+  title: string;
+  data: PageItem[];
+}
+const PAGE_SECTIONS: PageSection[] = [
   {
     title: 'Onboarding & Authentication',
     data: [
@@ -26,21 +37,17 @@ const PAGE_SECTIONS = [
     title: 'Main Pages',
     data: [
       { name: 'Categories', route: '/categories' },
-      { name: 'Home Page', route: '/index' },
+      { name: 'Home Page', route: '/' },
       { name: 'Product Details Page', route: '/product-detail' },
-      { name: 'Shop Page', route: '/(tabs)/cart' },
     ],
   },
   {
     title: 'Cart, Order & Payment Pages',
     data: [
       { name: 'Cart', route: '/cart' },
-      { name: 'Checkout', route: '/checkout' },
       { name: 'Coupon', route: '/coupon' },
       { name: 'New Address', route: '/new-address' },
-      { name: 'New Card', route: '/new-card' },
-      { name: 'Order Details', route: '/order-details' },
-      { name: 'Order-tracking', route: '/order-tracking' },
+      { name: 'Order Tracking', route: '/order-tracking' },
       { name: 'Payment', route: '/payment' },
       { name: 'Shipping Address', route: '/shipping-address' },
       { name: 'Shipping Page', route: '/shipping' },
@@ -78,7 +85,9 @@ export default function PageListingScreen() {
       
       <View style={[styles.header, { borderBottomColor: colors.border || '#E8ECF0' }]}>
         <TouchableOpacity 
-          onPress={() => router.replace('/(tabs)')} 
+          onPress={() => 
+            router.replace('/(tabs)')
+          } 
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
@@ -106,7 +115,13 @@ export default function PageListingScreen() {
               <TouchableOpacity
                 key={itemIndex}
                 style={[styles.itemRow, { borderBottomColor: colors.border || '#F0F0F0' }]}
-                onPress={() => router.push(item.route as any)}
+                onPress={() => {
+                      router.push({
+                        pathname: item.route as any,
+                        params: item.params
+                      });
+                  }
+                }
               >
                 <Text style={[styles.itemText, { color: '#8B9DB8' }]}>
                   {item.name}
@@ -130,7 +145,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     height: 56,
-    // Bỏ shadow nếu muốn giống ảnh phẳng hoàn toàn
   },
   backButton: {
     width: 40,
