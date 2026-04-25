@@ -1,3 +1,4 @@
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -52,6 +53,7 @@ const SECOND_BANNER_IMAGE = require('../../assets/images/screen3_img12.png');
 const WINGBACK_CHAIR_1 = require('../../assets/images/screen3_img15.png');
 const WINGBACK_CHAIR_2 = require('../../assets/images/screen3_img16.png');
 
+import SmartBanner from '@/components/SmartBanner';
 import { PRODUCTS_DATA } from '@/constants/data';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
@@ -83,7 +85,9 @@ export default function HomeScreen() {
   const params = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('1');
-  const userName = "Hoang Duc";
+  // Lấy thông tin user từ global auth state thay vì hardcode
+  const { user, logout } = useAuth();
+  const userName = user?.name || 'Guest';
   const { isFavorite, toggleFavorite } = useFavorites();
   const { addToCart } = useCart();
   const { isDarkMode, colors, setDarkMode } = useTheme();
@@ -335,6 +339,8 @@ export default function HomeScreen() {
                   style={styles.menuItem}
                   onPress={() => {
                     closedMenu();
+                    // Xóa user khỏi global state trước khi điều hướng về login
+                    logout();
                     router.replace('/login');
                   }}
                 >
@@ -382,6 +388,9 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Smart Banner — Cá nhân hóa theo phân khúc K-Means */}
+        <SmartBanner onPress={(seg) => console.log('SmartBanner CTA pressed:', seg)} />
+
         {/* Promo Banner 1 */}
         <View style={styles.bannerContainer}>
           <View style={styles.bannerYellowBackground} />

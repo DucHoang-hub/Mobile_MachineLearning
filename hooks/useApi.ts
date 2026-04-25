@@ -1,5 +1,5 @@
 import { PRODUCTS_DATA, SIMILAR_PRODUCTS } from '@/constants/data';
-import { CategoryService, ProductApi, ProductService } from '@/services/api';
+import { CategoryService, ProductApi, ProductService, getActiveApiBaseUrl } from '@/services/api';
 import { useCallback, useEffect, useState } from 'react';
 
 /**
@@ -279,12 +279,8 @@ function mapApiProductToLocal(apiProduct: ProductApi): any {
 }
 
 function getImageBaseUrl(): string {
-    // Same logic as API base URL but without /api
-    const { Platform: P } = require('react-native');
-    if (__DEV__) {
-        if (P.OS === 'android') return 'http://10.0.2.2:5000';
-        if (P.OS === 'ios') return 'http://localhost:5000';
-        return `http://192.168.1.100:5000`;
-    }
-    return 'https://your-production-api.com';
+    const activeApiBaseUrl = getActiveApiBaseUrl().replace(/\/+$/, '');
+    return activeApiBaseUrl.endsWith('/api')
+        ? activeApiBaseUrl.slice(0, -4)
+        : activeApiBaseUrl;
 }

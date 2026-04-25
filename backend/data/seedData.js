@@ -671,4 +671,340 @@ const PRODUCTS_SEED = [
     },
 ];
 
-module.exports = { CATEGORIES_SEED, PRODUCTS_SEED };
+// =====================================================================
+// ============ USERS & ORDERS SEED DATA (RFM / K-Means) ==============
+// =====================================================================
+//
+// 20 users split into 3 behavioral groups for clean K-Means clustering:
+//   Group 1 — VIP / Loyal       (users 0-4):   High F, High M, Low R
+//   Group 2 — Dormant / At-Risk (users 5-11):  Mid F, Mid M, High R
+//   Group 3 — Casual / Low      (users 12-19): Low F, Low M, Mixed R
+//
+// Orders are generated deterministically via a seeded PRNG so the
+// dataset is identical every time the server starts or seeds.
+// =====================================================================
+
+// ============ Deterministic PRNG (Lehmer / Park-Miller) ============
+function _seededRNG(seed) {
+    let s = seed % 2147483647;
+    if (s <= 0) s += 2147483646;
+    return function () {
+        s = (s * 16807) % 2147483647;
+        return (s - 1) / 2147483646;
+    };
+}
+
+const _rng = _seededRNG(2026);
+const _randInt = (min, max) => Math.floor(_rng() * (max - min + 1)) + min;
+const _randFloat = (min, max) => +(_rng() * (max - min) + min).toFixed(2);
+const _randItem = (arr) => arr[Math.floor(_rng() * arr.length)];
+const _randDate = (start, end) =>
+    new Date(start.getTime() + Math.floor(_rng() * (end.getTime() - start.getTime())));
+
+// ============ 20 USERS ============
+
+const USERS_SEED = [
+    // ====== GROUP 1: VIP / Loyal (index 0-4) ======
+    // 🔑 Password mặc định cho tất cả users: "fuzzy123"
+    {
+        name: 'Nguyễn Minh Anh',
+        email: 'minhanh.nguyen@gmail.com',
+        password: 'fuzzy123',
+        phone: '0901234567',
+        address: { street: '12 Nguyễn Huệ', city: 'Hồ Chí Minh', state: 'HCM', zipCode: '700000' },
+    },
+    {
+        name: 'Trần Đức Huy',
+        email: 'duchuy.tran@gmail.com',
+        password: 'fuzzy123',
+        phone: '0912345678',
+        address: { street: '45 Lê Lợi', city: 'Hồ Chí Minh', state: 'HCM', zipCode: '700000' },
+    },
+    {
+        name: 'Lê Thị Hồng Nhung',
+        email: 'hongnhung.le@gmail.com',
+        password: 'fuzzy123',
+        phone: '0923456789',
+        address: { street: '78 Hai Bà Trưng', city: 'Hà Nội', state: 'HN', zipCode: '100000' },
+    },
+    {
+        name: 'Phạm Quốc Bảo',
+        email: 'quocbao.pham@gmail.com',
+        password: 'fuzzy123',
+        phone: '0934567890',
+        address: { street: '23 Trần Phú', city: 'Đà Nẵng', state: 'DN', zipCode: '550000' },
+    },
+    {
+        name: 'Hoàng Thùy Linh',
+        email: 'thuylinh.hoang@gmail.com',
+        password: 'fuzzy123',
+        phone: '0945678901',
+        address: { street: '56 Pasteur', city: 'Hồ Chí Minh', state: 'HCM', zipCode: '700000' },
+    },
+
+    // ====== GROUP 2: Dormant / At-Risk (index 5-11) ======
+    {
+        name: 'Vũ Thanh Tùng',
+        email: 'thanhtung.vu@gmail.com',
+        password: 'fuzzy123',
+        phone: '0956789012',
+        address: { street: '89 Bà Triệu', city: 'Hà Nội', state: 'HN', zipCode: '100000' },
+    },
+    {
+        name: 'Đặng Thị Mai',
+        email: 'thimai.dang@gmail.com',
+        password: 'fuzzy123',
+        phone: '0967890123',
+        address: { street: '34 Nguyễn Trãi', city: 'Hồ Chí Minh', state: 'HCM', zipCode: '700000' },
+    },
+    {
+        name: 'Bùi Văn Khoa',
+        email: 'vankhoa.bui@gmail.com',
+        password: 'fuzzy123',
+        phone: '0978901234',
+        address: { street: '67 Lý Thường Kiệt', city: 'Huế', state: 'TH', zipCode: '530000' },
+    },
+    {
+        name: 'Ngô Phương Thảo',
+        email: 'phuongthao.ngo@gmail.com',
+        password: 'fuzzy123',
+        phone: '0989012345',
+        address: { street: '12 Trường Chinh', city: 'Hà Nội', state: 'HN', zipCode: '100000' },
+    },
+    {
+        name: 'Lý Hoàng Nam',
+        email: 'hoangnam.ly@gmail.com',
+        password: 'fuzzy123',
+        phone: '0990123456',
+        address: { street: '90 Lê Duẩn', city: 'Đà Nẵng', state: 'DN', zipCode: '550000' },
+    },
+    {
+        name: 'Trịnh Khánh Linh',
+        email: 'khanhlinh.trinh@gmail.com',
+        password: 'fuzzy123',
+        phone: '0901122334',
+        address: { street: '45 Nguyễn Du', city: 'Hồ Chí Minh', state: 'HCM', zipCode: '700000' },
+    },
+    {
+        name: 'Dương Minh Tuấn',
+        email: 'minhtuan.duong@gmail.com',
+        password: 'fuzzy123',
+        phone: '0912233445',
+        address: { street: '23 Hoàng Hoa Thám', city: 'Hà Nội', state: 'HN', zipCode: '100000' },
+    },
+
+    // ====== GROUP 3: Casual / Low-value (index 12-19) ======
+    {
+        name: 'Phan Thị Lan',
+        email: 'thilan.phan@gmail.com',
+        password: 'fuzzy123',
+        phone: '0923344556',
+        address: { street: '78 Điện Biên Phủ', city: 'Cần Thơ', state: 'CT', zipCode: '900000' },
+    },
+    {
+        name: 'Cao Bá Quát',
+        email: 'baquat.cao@gmail.com',
+        password: 'fuzzy123',
+        phone: '0934455667',
+        address: { street: '56 Hùng Vương', city: 'Hải Phòng', state: 'HP', zipCode: '180000' },
+    },
+    {
+        name: 'Mai Thị Hạnh',
+        email: 'thihanh.mai@gmail.com',
+        password: 'fuzzy123',
+        phone: '0945566778',
+        address: { street: '34 Nguyễn Văn Cừ', city: 'Hồ Chí Minh', state: 'HCM', zipCode: '700000' },
+    },
+    {
+        name: 'Tô Quang Vinh',
+        email: 'quangvinh.to@gmail.com',
+        password: 'fuzzy123',
+        phone: '0956677889',
+        address: { street: '12 Lê Hồng Phong', city: 'Nha Trang', state: 'KH', zipCode: '650000' },
+    },
+    {
+        name: 'Hà Thế Anh',
+        email: 'theanh.ha@gmail.com',
+        password: 'fuzzy123',
+        phone: '0967788990',
+        address: { street: '89 Trần Hưng Đạo', city: 'Đà Lạt', state: 'LD', zipCode: '670000' },
+    },
+    {
+        name: 'Châu Ngọc Diệp',
+        email: 'ngocdiep.chau@gmail.com',
+        password: 'fuzzy123',
+        phone: '0978899001',
+        address: { street: '45 Phan Đình Phùng', city: 'Huế', state: 'TH', zipCode: '530000' },
+    },
+    {
+        name: 'Lâm Hữu Phước',
+        email: 'huuphuoc.lam@gmail.com',
+        password: 'fuzzy123',
+        phone: '0989900112',
+        address: { street: '67 Võ Văn Tần', city: 'Hồ Chí Minh', state: 'HCM', zipCode: '700000' },
+    },
+    {
+        name: 'Đinh Công Sơn',
+        email: 'congson.dinh@gmail.com',
+        password: 'fuzzy123',
+        phone: '0990011223',
+        address: { street: '23 Nguyễn Thái Học', city: 'Quy Nhơn', state: 'BD', zipCode: '590000' },
+    },
+];
+
+// ============ ORDER GENERATION ENGINE ============
+
+const _REF_DATE   = new Date('2026-04-17T00:00:00');
+const _YEAR_AGO   = new Date('2025-04-17T00:00:00');
+
+// Build product lookup tables by price tier
+const _productPool = PRODUCTS_SEED.map(p => ({
+    productId: p.productId,
+    productName: p.name,
+    price: p.price,
+}));
+const _highValueProducts = _productPool.filter(p => p.price >= 150);
+const _midValueProducts  = _productPool.filter(p => p.price >= 50 && p.price < 250);
+const _lowValueProducts  = _productPool.filter(p => p.price < 80);
+const _PAYMENTS = ['Credit Card', 'PayPal', 'Bank Transfer', 'Cash on Delivery'];
+
+function _makeItems(pool, minQty, maxQty, minItems, maxItems) {
+    const n = _randInt(minItems, maxItems);
+    const items = [];
+    for (let i = 0; i < n; i++) {
+        const prod = _randItem(pool);
+        items.push({
+            productId: prod.productId,
+            productName: prod.productName,
+            quantity: _randInt(minQty, maxQty),
+            price: prod.price,
+        });
+    }
+    return items;
+}
+
+function _itemsTotal(items) {
+    return +items.reduce((s, it) => s + it.price * it.quantity, 0).toFixed(2);
+}
+
+function _generateAllOrders() {
+    const orders = [];
+    let counter = 1;
+
+    // ────────────────────────────────────────────────
+    // GROUP 1 — VIP / Loyal  (users 0-4)
+    //   ~35-45 orders each, high-value items, recent
+    // ────────────────────────────────────────────────
+    const vipOrderCounts = [38, 42, 36, 45, 40]; // total ≈ 201
+    for (let u = 0; u < 5; u++) {
+        const numOrders = vipOrderCounts[u];
+        for (let i = 0; i < numOrders; i++) {
+            let orderDate;
+            if (i >= numOrders - 2) {
+                // Last 2 orders: within the most recent 14 days
+                orderDate = _randDate(
+                    new Date('2026-04-03T00:00:00'),
+                    new Date('2026-04-16T23:59:59')
+                );
+            } else {
+                // Spread across the rest of the year
+                orderDate = _randDate(_YEAR_AGO, new Date('2026-04-02T23:59:59'));
+            }
+
+            const items = _makeItems(
+                _rng() > 0.25 ? _highValueProducts : _midValueProducts,
+                1, 3,  // quantity per item
+                2, 4   // number of distinct items
+            );
+
+            orders.push({
+                userIndex: u,
+                orderDate,
+                totalAmount: _itemsTotal(items),
+                status: 'Completed',
+                items,
+                paymentMethod: _randItem(_PAYMENTS),
+                orderNumber: `ORD-${String(counter++).padStart(5, '0')}`,
+            });
+        }
+    }
+
+    // ────────────────────────────────────────────────
+    // GROUP 2 — Dormant / At-Risk  (users 5-11)
+    //   ~18-26 orders each, medium-value items
+    //   ALL orders before Dec 2025 → Recency = 4-6 months
+    // ────────────────────────────────────────────────
+    const dormantOrderCounts = [22, 25, 18, 20, 26, 24, 21]; // total ≈ 156
+    const dormantLastStart = new Date('2025-10-01T00:00:00');
+    const dormantLastEnd   = new Date('2025-12-15T23:59:59');
+
+    for (let u = 5; u < 12; u++) {
+        const numOrders = dormantOrderCounts[u - 5];
+        for (let i = 0; i < numOrders; i++) {
+            let orderDate;
+            if (i >= numOrders - 1) {
+                // The very last order: Oct–Dec 2025 (4-6 months ago)
+                orderDate = _randDate(dormantLastStart, dormantLastEnd);
+            } else {
+                // Earlier orders: spread from Apr 2025 to Sep 2025
+                orderDate = _randDate(_YEAR_AGO, new Date('2025-09-30T23:59:59'));
+            }
+
+            const items = _makeItems(
+                _midValueProducts,
+                1, 2,  // quantity per item
+                1, 3   // number of distinct items
+            );
+
+            orders.push({
+                userIndex: u,
+                orderDate,
+                totalAmount: _itemsTotal(items),
+                status: 'Completed',
+                items,
+                paymentMethod: _randItem(_PAYMENTS),
+                orderNumber: `ORD-${String(counter++).padStart(5, '0')}`,
+            });
+        }
+    }
+
+    // ────────────────────────────────────────────────
+    // GROUP 3 — Casual / Low-value  (users 12-19)
+    //   1-3 orders each, low-value items, single item
+    // ────────────────────────────────────────────────
+    const casualOrderCounts = [2, 1, 3, 2, 1, 2, 3, 1]; // total ≈ 15
+    for (let u = 12; u < 20; u++) {
+        const numOrders = casualOrderCounts[u - 12];
+        for (let i = 0; i < numOrders; i++) {
+            const orderDate = _randDate(_YEAR_AGO, _REF_DATE);
+
+            const items = _makeItems(
+                _lowValueProducts,
+                1, 1,  // quantity always 1
+                1, 1   // always 1 item per order
+            );
+
+            orders.push({
+                userIndex: u,
+                orderDate,
+                totalAmount: _itemsTotal(items),
+                status: _rng() > 0.15 ? 'Completed' : 'Cancelled',
+                items,
+                paymentMethod: _randItem(_PAYMENTS),
+                orderNumber: `ORD-${String(counter++).padStart(5, '0')}`,
+            });
+        }
+    }
+
+    // Sort chronologically
+    orders.sort((a, b) => a.orderDate.getTime() - b.orderDate.getTime());
+    return orders;
+}
+
+const ORDERS_SEED = _generateAllOrders();
+
+// ============ SUMMARY (logged on import for verification) ============
+// Uncomment the line below to verify distribution when debugging:
+// console.log(`📊 Seed Stats: ${USERS_SEED.length} users, ${ORDERS_SEED.length} orders (VIP≈201, Dormant≈156, Casual≈15)`);
+
+module.exports = { CATEGORIES_SEED, PRODUCTS_SEED, USERS_SEED, ORDERS_SEED };

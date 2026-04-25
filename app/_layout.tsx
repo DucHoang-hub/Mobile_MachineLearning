@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
+import { AuthProvider } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -35,14 +36,16 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <AppThemeProvider>
-      <LanguageProvider>
-        <CartProvider>
-          <FavoritesProvider>
-            <RootLayoutContent />
-          </FavoritesProvider>
-        </CartProvider>
-      </LanguageProvider>
-    </AppThemeProvider>
+    <AuthProvider>
+      <AppThemeProvider>
+        <LanguageProvider>
+          <CartProvider>
+            <FavoritesProvider>
+              <RootLayoutContent />
+            </FavoritesProvider>
+          </CartProvider>
+        </LanguageProvider>
+      </AppThemeProvider>
+    </AuthProvider>
   );
 }

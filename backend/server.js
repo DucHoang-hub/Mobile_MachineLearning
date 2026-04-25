@@ -9,6 +9,7 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 // Import routes
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +45,7 @@ app.get('/api', (req, res) => {
         version: '1.0.0',
         mode: getIsConnected() ? 'MongoDB' : 'In-Memory',
         endpoints: {
+            auth: '/api/auth',
             products: '/api/products',
             categories: '/api/categories',
             health: '/api/health',
@@ -80,6 +82,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // API routes
+app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 
@@ -92,7 +95,7 @@ const startServer = async () => {
     // Try to connect to MongoDB (will fallback to in-memory if unavailable)
     const dbConnected = await connectDB();
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
         console.log('');
         console.log('═'.repeat(50));
         console.log('  🚀 FUZZY FURNITURE API SERVER');
@@ -104,7 +107,10 @@ const startServer = async () => {
         console.log('═'.repeat(50));
         console.log('');
         console.log('  Available Endpoints:');
-        console.log('  ─────────────────────────────────────');
+        console.log('  ───────────────────────────────────────');
+        console.log('  POST   /api/auth/register');
+        console.log('  POST   /api/auth/login');
+        console.log('  GET    /api/auth/me');
         console.log('  GET    /api/products');
         console.log('  GET    /api/products/:id');
         console.log('  GET    /api/products/category/:name');
@@ -121,6 +127,18 @@ const startServer = async () => {
         console.log('  PUT    /api/categories/:slug');
         console.log('  DELETE /api/categories/:slug');
         console.log('');
+    });
+
+    server.on('error', (error) => {
+        if (error.code === 'EADDRINUSE') {
+            console.error(`❌ Port ${PORT} is already in use.`);
+            console.error('   Another backend instance may already be running.');
+            console.error(`   Stop the existing process or start this server with a different PORT (e.g. PORT=${Number(PORT) + 1}).`);
+            process.exit(1);
+        }
+
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
     });
 };
 

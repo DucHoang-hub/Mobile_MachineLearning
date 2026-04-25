@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, StatusBar, Platform, ScrollView, Animated, Image, KeyboardAvoidingView, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, StatusBar, Platform, ScrollView, Animated, Image, KeyboardAvoidingView, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthService } from '@/services/api';
 
 const { width, height } = Dimensions.get('window');
 const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 44;
@@ -11,9 +13,11 @@ const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 export default function SignUpScreen() {
     const router = useRouter();
+    const { login } = useAuth();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     // Typewriter animation for "Let's you in"
     const [displayedText, setDisplayedText] = useState('');
@@ -84,11 +88,55 @@ export default function SignUpScreen() {
         extrapolate: 'clamp',
     });
 
-    const handleSignUp = () => {
-        // Handle sign up logic
-        console.log('Sign up with:', name, email, password);
-        // After successful signup, navigate to home
-        router.push('/(tabs)');
+    const handleSignUp = async () => {
+        if (!name.trim()) {
+            Alert.alert('Thông báo', 'Vui lòng nhập họ tên.');
+            return;
+        }
+
+        if (!email.trim()) {
+            Alert.alert('Thông báo', 'Vui lòng nhập email.');
+            return;
+        }
+
+        if (!password.trim()) {
+            Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
+            return;
+        }
+
+        if (password.trim().length < 6) {
+            Alert.alert('Thông báo', 'Mật khẩu phải có ít nhất 6 ký tự.');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const response = await AuthService.register({
+                name: name.trim(),
+                email: email.trim(),
+                password,
+            });
+
+            const { user: userData } = response.data;
+
+            login({
+                id: userData.id,
+                name: userData.name,
+                email: userData.email,
+                avatar: userData.avatar ?? undefined,
+                segment: userData.segment ?? undefined,
+            });
+
+            router.replace('/(tabs)');
+        } catch (error: any) {
+            Alert.alert(
+                'Đăng ký thất bại',
+                error.message || 'Đã xảy ra lỗi. Vui lòng thử lại.',
+            );
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -221,11 +269,16 @@ export default function SignUpScreen() {
 
                         {/* Sign Up Button */}
                         <TouchableOpacity
-                            style={styles.signUpButton}
+                            style={[styles.signUpButton, isLoading && { opacity: 0.7 }]}
                             onPress={handleSignUp}
                             activeOpacity={0.9}
+                            disabled={isLoading}
                         >
-                            <Text style={styles.signUpButtonText}>Sign UP</Text>
+                            {isLoading ? (
+                                <ActivityIndicator size="small" color="#1a2632" />
+                            ) : (
+                                <Text style={styles.signUpButtonText}>Sign UP</Text>
+                            )}
                         </TouchableOpacity>
 
                         {/* OR Divider */}

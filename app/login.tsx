@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, StatusBar, Platform, ScrollView, Animated, Image, KeyboardAvoidingView, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Dimensions, StatusBar, Platform, ScrollView, Animated, Image, KeyboardAvoidingView, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthService } from '@/services/api';
 
 const { width, height } = Dimensions.get('window');
 const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 44; // iOS notch area
@@ -11,9 +13,12 @@ const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 
 export default function LoginScreen() {
     const router = useRouter();
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
+    // Loading state — tránh nhấn nút nhiều lần
+    const [isLoading, setIsLoading] = useState(false);
 
     // Typewriter animation for "Hello Again!"
     const [displayedText, setDisplayedText] = useState('');
@@ -84,17 +89,68 @@ export default function LoginScreen() {
         extrapolate: 'clamp',
     });
 
-    const handleSignIn = () => {
-        // Handle sign in logic
-        console.log('Sign in with:', email, password);
-        // Navigate to home screen
-        router.push('/(tabs)');
+    // ── Đăng nhập bằng Email + Password qua API thực tế ──
+    const handleSignIn = async () => {
+        // Validate input trước khi gọi API
+        if (!email.trim()) {
+            Alert.alert('Thông báo', 'Vui lòng nhập email.');
+            return;
+        }
+        if (!password.trim()) {
+            Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            // Gọi API login — endpoint: POST /api/auth/login
+            const response = await AuthService.login(email.trim(), password);
+
+            // Lấy toàn bộ user object từ API response
+            const { user: userData } = response.data;
+
+            // Đẩy full user profile (bao gồm segment + rfmScores) vào Global State
+            login({
+                id: userData.id,
+                name: userData.name,
+                email: userData.email,
+                phone: userData.phone ?? undefined,
+                avatar: userData.avatar ?? undefined,
+                segment: userData.segment ?? undefined,
+                rfmScores: userData.rfmScores ?? undefined,
+            });
+
+            if (__DEV__) {
+                console.log('✅ Login success:', userData.email, '| Segment:', userData.segment);
+            }
+
+            // Điều hướng vào app — replace để không back lại login
+            router.replace('/(tabs)');
+        } catch (error: any) {
+            // Hiển thị lỗi cho user (sai pass / lỗi mạng / server error)
+            const errorMessage =
+                error.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
+
+            Alert.alert('Đăng nhập thất bại', errorMessage);
+
+            if (__DEV__) {
+                console.error('❌ Login error:', errorMessage);
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
+
+    // ── Social Login — placeholder cho Google/Facebook/Apple OAuth ──
     const handleSocialLogin = (platform: string) => {
-        console.log('Login with:', platform);
-        // Navigate to home screen
-        router.push('/(tabs)');
+        // TODO: Tích hợp OAuth provider thực tế
+        // Sau khi OAuth thành công, gọi API backend để lấy/tạo user + segment
+        Alert.alert(
+            'Coming Soon',
+            `Đăng nhập bằng ${platform} sẽ được hỗ trợ trong phiên bản tới.`,
+        );
     };
 
     return (
@@ -231,11 +287,16 @@ export default function LoginScreen() {
 
                         {/* Sign In Button */}
                         <TouchableOpacity
-                            style={styles.signInButton}
+                            style={[styles.signInButton, isLoading && { opacity: 0.7 }]}
                             onPress={handleSignIn}
                             activeOpacity={0.9}
+                            disabled={isLoading}
                         >
-                            <Text style={styles.signInButtonText}>Sign In</Text>
+                            {isLoading ? (
+                                <ActivityIndicator size="small" color="#1a2632" />
+                            ) : (
+                                <Text style={styles.signInButtonText}>Sign In</Text>
+                            )}
                         </TouchableOpacity>
 
                         {/* OR Divider */}
