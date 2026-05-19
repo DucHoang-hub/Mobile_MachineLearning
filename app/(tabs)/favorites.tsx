@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     FlatList,
     Image,
     Platform,
@@ -12,20 +13,12 @@ import {
     View,
 } from 'react-native';
 
-import { PRODUCTS_DATA, SIMILAR_PRODUCTS } from '@/constants/data';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
-
-// Helper to flatten products or find by ID
-const getAllProducts = () => {
-    let allProducts: any[] = [];
-    Object.values(PRODUCTS_DATA).forEach((categoryProducts) => {
-        allProducts = [...allProducts, ...categoryProducts];
-    });
-    return [...allProducts, ...SIMILAR_PRODUCTS];
-};
+import { ProductService, ProductApi } from '@/services/api';
+import { resolveProductImage, resolveProductViews } from '@/utils/imageMap';
 
 export default function FavoritesScreen() {
     const router = useRouter();
@@ -34,7 +27,38 @@ export default function FavoritesScreen() {
     const { isDarkMode, colors } = useTheme();
     const { t } = useLanguage();
 
-    const allProducts = getAllProducts();
+    const [allProducts, setAllProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // ── Fetch tất cả sản phẩm từ API ──
+    const fetchProducts = useCallback(async () => {
+        try {
+            setLoading(true);
+            const res = await ProductService.getAll({ limit: 50 });
+            if (res?.data) {
+                setAllProducts(res.data.map((p: ProductApi) => ({
+                    id: p.productId,
+                    name: p.name,
+                    description: p.description,
+                    price: p.price,
+                    oldPrice: p.oldPrice,
+                    rating: p.rating,
+                    image: resolveProductImage(p.image),
+                    colors: p.colors,
+                    productViews: resolveProductViews(p.productViews),
+                })));
+            }
+        } catch (error) {
+            console.error('Failed to fetch products for favorites:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
+
     const favoriteProducts = allProducts.filter((p) => favorites.includes(p.id));
 
     const handleAddToCart = (product: any) => {

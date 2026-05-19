@@ -2,11 +2,12 @@ import { useCart } from '@/contexts/CartContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { FlatList, Image, Modal, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Modal, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import { PRODUCTS_DATA } from '@/constants/data';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { ProductService, ProductApi } from '@/services/api';
+import { resolveProductImage } from '@/utils/imageMap';
 
 export default function CategoryProductsScreen() {
     const router = useRouter();
@@ -18,13 +19,39 @@ export default function CategoryProductsScreen() {
     const { isFavorite, toggleFavorite } = useFavorites();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [addedProductName, setAddedProductName] = useState('');
+    const [loading, setLoading] = useState(true);
 
-    // Get products for this category or use default
-    const categoryProducts = PRODUCTS_DATA[categoryTitle] || PRODUCTS_DATA['Chairs'];
+    // ── State cho sản phẩm từ API ──
+    const [categoryProducts, setCategoryProducts] = useState<any[]>([]);
 
-    const filteredProducts = categoryProducts.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // ── Fetch sản phẩm theo danh mục từ API ──
+    const fetchProducts = useCallback(async () => {
+        try {
+            setLoading(true);
+            const res = await ProductService.getByCategory(categoryTitle, { limit: 20 });
+            if (res?.data) {
+                setCategoryProducts(res.data.map((p: ProductApi) => ({
+                    id: p.productId,
+                    name: p.name,
+                    description: p.description,
+                    price: p.price,
+                    oldPrice: p.oldPrice,
+                    rating: p.rating,
+                    image: resolveProductImage(p.image),
+                    discount: p.discount > 0 ? `${p.discount}%` : undefined,
+                    category: p.category,
+                })));
+            }
+        } catch (error) {
+            console.error('Failed to fetch category products:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [categoryTitle]);
+
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
 
 
 
@@ -148,14 +175,22 @@ export default function CategoryProductsScreen() {
             </View>
 
             {/* Product Grid */}
+            {loading ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>
+                    <ActivityIndicator size="large" color={colors.primary || '#1a2632'} />
+                </View>
+            ) : (
             <FlatList
-                data={filteredProducts}
+                data={categoryProducts.filter(item =>
+                    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+                )}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.listContent}
                 renderItem={renderProductCard}
             />
+            )}
 
             {/* Quick Add Success Toast */}
             <Modal

@@ -2,8 +2,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Animated,
     Dimensions,
     FlatList,
@@ -31,6 +32,7 @@ interface Product {
   image: any;
   discount?: string;
   oldPrice?: number;
+  category?: string;
 }
 interface Category {
   id: string;
@@ -38,15 +40,16 @@ interface Category {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
 }
 
-// Mock Data
-const CATEGORIES: Category[] = [
-  { id: '1', name: 'Sofas', icon: 'sofa' },
-  { id: '2', name: 'Chairs', icon: 'chair-rolling' },
-  { id: '3', name: 'Tables', icon: 'table-furniture' },
-  { id: '4', name: 'Cabinets', icon: 'file-cabinet' },
-  { id: '5', name: 'Cupboards', icon: 'wardrobe' },
-  { id: '6', name: 'Lamps', icon: 'floor-lamp' },
-];
+// Icon mapping cho categories (dùng cho chip navigation)
+const CATEGORY_ICON_MAP: { [key: string]: keyof typeof MaterialCommunityIcons.glyphMap } = {
+  'Sofas': 'sofa',
+  'Chairs': 'chair-rolling',
+  'Tables': 'table-furniture',
+  'Cabinets': 'file-cabinet',
+  'Cupboards': 'wardrobe',
+  'Lamps': 'floor-lamp',
+  'Hanging chairs': 'seat',
+};
 
 const BEST_SELLING_IMAGE = require('../../assets/images/screen3_img11.png');
 const SECOND_BANNER_IMAGE = require('../../assets/images/screen3_img12.png');
@@ -54,33 +57,28 @@ const WINGBACK_CHAIR_1 = require('../../assets/images/screen3_img15.png');
 const WINGBACK_CHAIR_2 = require('../../assets/images/screen3_img16.png');
 
 import SmartBanner from '@/components/SmartBanner';
-import { PRODUCTS_DATA } from '@/constants/data';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
+import { ProductService, CategoryService, ProductApi } from '@/services/api';
+import { resolveProductImage } from '@/utils/imageMap';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-const NEW_ARRIVALS = [
-  PRODUCTS_DATA['Chairs'][0],
-  PRODUCTS_DATA['Chairs'][1],
-];
+/**
+ * Chuyển đổi ProductApi (từ server) sang Product format cho UI.
+ * Image path từ API được map sang local require() asset.
+ */
+const mapApiProduct = (p: ProductApi): Product => ({
+  id: p.productId,
+  name: p.name,
+  description: p.description,
+  price: p.price,
+  oldPrice: p.oldPrice,
+  rating: p.rating,
+  image: resolveProductImage(p.image),
+  discount: p.discount > 0 ? `${p.discount}%` : undefined,
+  category: p.category,
+});
 
-const TRENDING = [
-  PRODUCTS_DATA['Chairs'][1],
-  PRODUCTS_DATA['Sofas'][2],
-  PRODUCTS_DATA['Chairs'][3],
-];
-
-const OFFER_ZONE = [
-  PRODUCTS_DATA['Lamps'][1],
-  PRODUCTS_DATA['Chairs'][3],
-];
-
-const FURNITURE_DECOR = [
-  PRODUCTS_DATA['Hanging chairs'][0],
-  PRODUCTS_DATA['Chairs'][2],
-  PRODUCTS_DATA['Tables'][1],
-  PRODUCTS_DATA['Lamps'][3],
-];
 export default function HomeScreen() {
   const params = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
@@ -98,6 +96,61 @@ export default function HomeScreen() {
   const [isRTL, setIsRTL] = useState(false);
   const router = useRouter();
   const slideAnim = useRef(new Animated.Value(-width)).current;
+
+  // ── State cho dữ liệu từ API ──
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [trending, setTrending] = useState<Product[]>([]);
+  const [offerZone, setOfferZone] = useState<Product[]>([]);
+  const [furnitureDecor, setFurnitureDecor] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // ── Fetch dữ liệu từ API khi component mount ──
+  const fetchHomeData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [featuredRes, offersRes, categoriesRes, allProductsRes] = await Promise.all([
+        ProductService.getFeatured(4),
+        ProductService.getOffers(4),
+        CategoryService.getAll(),
+        ProductService.getAll({ limit: 28 }),
+      ]);
+
+      // New Arrivals: 2 sản phẩm mới nhất
+      if (allProductsRes?.data) {
+        const allProducts = allProductsRes.data;
+        setNewArrivals(allProducts.slice(0, 2).map(mapApiProduct));
+        setFurnitureDecor(allProducts.slice(4, 8).map(mapApiProduct));
+      }
+
+      // Trending: sản phẩm rating cao
+      if (featuredRes?.data) {
+        setTrending(featuredRes.data.slice(0, 3).map(mapApiProduct));
+      }
+
+      // Offer Zone: sản phẩm giảm giá
+      if (offersRes?.data) {
+        setOfferZone(offersRes.data.slice(0, 2).map(mapApiProduct));
+      }
+
+      // Categories
+      if (categoriesRes?.data) {
+        setCategories(categoriesRes.data.map((cat: any, index: number) => ({
+          id: String(index + 1),
+          name: cat.name,
+          icon: CATEGORY_ICON_MAP[cat.name] || 'shape-outline' as any,
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch home data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHomeData();
+  }, [fetchHomeData]);
   const renderStarRating = (rating: number) => {
     return (
       <View style={styles.ratingContainer}>
@@ -309,7 +362,7 @@ export default function HomeScreen() {
                     source={{ uri: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500' }}
                     style={styles.menuAvatar}
                   />
-                  <Text style={[styles.menuHello, {color: colors.text}]}>Hello, Hoang Duc</Text> 
+                  <Text style={[styles.menuHello, {color: colors.text}]}>Hello, {userName}</Text> 
                 </View>
                 <TouchableOpacity onPress={()=> setMenuVisible(false)}>
                   <Ionicons name='close' size={24} color={colors.textSecondary}/>
@@ -387,6 +440,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 }}>
+          <ActivityIndicator size="large" color={colors.primary || '#1a2632'} />
+          <Text style={{ marginTop: 12, color: colors.textSecondary, fontSize: 14 }}>Đang tải dữ liệu...</Text>
+        </View>
+      ) : (
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Smart Banner — Cá nhân hóa theo phân khúc K-Means */}
         <SmartBanner onPress={(seg) => console.log('SmartBanner CTA pressed:', seg)} />
@@ -416,7 +475,7 @@ export default function HomeScreen() {
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
-          {CATEGORIES.map((cat, index) => (
+          {categories.map((cat, index) => (
             <TouchableOpacity
               key={cat.id}
               style={[styles.categoryChip, activeCategory === cat.id && styles.activeCategoryChip]}
@@ -443,7 +502,7 @@ export default function HomeScreen() {
           <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{t.viewAll}</Text></TouchableOpacity>
         </View>
         <FlatList
-          data={NEW_ARRIVALS}
+          data={newArrivals}
           renderItem={rendersItem1('new_arrivals')}
           keyExtractor={item => item.id}
           numColumns={2}
@@ -459,7 +518,7 @@ export default function HomeScreen() {
           <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{t.viewAll}</Text></TouchableOpacity>
         </View>
         <FlatList
-          data={TRENDING}
+          data={trending}
           renderItem={renderItem2}
           keyExtractor={item => item.id}
           scrollEnabled={false}
@@ -483,7 +542,7 @@ export default function HomeScreen() {
           <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{t.viewAll}</Text></TouchableOpacity>
         </View>
         <FlatList
-          data={OFFER_ZONE}
+          data={offerZone}
           renderItem={renderItem2}
           keyExtractor={item => item.id}
           scrollEnabled={false}
@@ -494,7 +553,7 @@ export default function HomeScreen() {
           <TouchableOpacity><Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{t.viewAll}</Text></TouchableOpacity>
         </View>
         <FlatList
-          data={FURNITURE_DECOR}
+          data={furnitureDecor}
           renderItem={rendersItem1('furniture_decor')}
           keyExtractor={item => item.id}
           numColumns={2}
@@ -532,7 +591,7 @@ export default function HomeScreen() {
         </View>
         <View style={{ height: 80 }} />
       </ScrollView>
-
+      )}
     </View>
   );
 }
