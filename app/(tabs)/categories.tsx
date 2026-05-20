@@ -1,62 +1,52 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { CategoryService } from '@/services/api';
+import { resolveCategoryImage } from '@/utils/imageMap';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { FlatList, Image, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Platform, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const CATEGORIES_DATA = [
-    {
-        id: '1',
-        title: 'Chairs',
-        count: 29,
-        image: require('../../assets/images/screen4_img1.png')
-    },
-    {
-        id: '2',
-        title: 'Tables',
-        count: 45,
-        image: require('../../assets/images/screen4_img2.png')
-    },
-    {
-        id: '3',
-        title: 'Sofas',
-        count: 31,
-        image: require('../../assets/images/screen4_img3.png')
-    },
-    {
-        id: '4',
-        title: 'Hanging chairs',
-        count: 19,
-        image: require('../../assets/images/screen4_img7.png')
-    },
-    {
-        id: '5',
-        title: 'Cabinets',
-        count: 21,
-        image: require('../../assets/images/screen4_img4.png')
-    },
-    {
-        id: '6',
-        title: 'Lamps',
-        count: 32,
-        image: require('../../assets/images/screen4_img5.png')
-    },
-    {
-        id: '7',
-        title: 'Cupboards',
-        count: 18,
-        image: require('../../assets/images/screen4_img6.png')
-    },
-];
+interface CategoryItem {
+    id: string;
+    title: string;
+    count: number;
+    image: any;
+}
 
 export default function CategoriesScreen() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const { isDarkMode, colors } = useTheme();
     const { t } = useLanguage();
+    const [categoriesData, setCategoriesData] = useState<CategoryItem[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const filteredData = CATEGORIES_DATA.filter(item =>
+    // ── Fetch danh mục từ API ──
+    const fetchCategories = useCallback(async () => {
+        try {
+            setLoading(true);
+            const res = await CategoryService.getAll();
+            if (res?.data) {
+                setCategoriesData(res.data.map((cat: any, index: number) => ({
+                    id: String(index + 1),
+                    title: cat.name,
+                    count: cat.productCount || 0,
+                    image: resolveCategoryImage(cat.image),
+                })));
+            }
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
+    const filteredData = categoriesData.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -92,6 +82,11 @@ export default function CategoriesScreen() {
                 </View>
             </View>
             {/* Card Categories */}
+            {loading ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 }}>
+                    <ActivityIndicator size="large" color={colors.primary || '#1a2632'} />
+                </View>
+            ) : (
             <FlatList
                 data={filteredData}
                 keyExtractor={(item) => item.id}
@@ -116,6 +111,7 @@ export default function CategoriesScreen() {
                     </Pressable>
                 )}
             />
+            )}
         </View>
     );
 }

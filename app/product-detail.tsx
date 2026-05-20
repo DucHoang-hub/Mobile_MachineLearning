@@ -1,8 +1,9 @@
 import { useCart } from '@/contexts/CartContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     Animated,
     Dimensions,
@@ -22,9 +23,10 @@ import {
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-import { PRODUCTS_DATA, SIMILAR_PRODUCTS } from '@/constants/data';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { ProductService, ProductApi } from '@/services/api';
+import { resolveProductImage, resolveProductViews } from '@/utils/imageMap';
 
 export default function ProductDetailScreen() {
     const router = useRouter();
@@ -36,9 +38,63 @@ export default function ProductDetailScreen() {
     const productId = params.id as string || '1';
 
     const {isDarkMode, colors} = useTheme();
-    // Find the product
-    const categoryProducts = PRODUCTS_DATA[categoryTitle] || PRODUCTS_DATA['Chairs'];
-    const product = categoryProducts.find(p => p.id === productId) || categoryProducts[0];
+
+    // ── State cho sản phẩm từ API ──
+    const [product, setProduct] = useState<any>(null);
+    const [similarProducts, setSimilarProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // ── Fetch chi tiết sản phẩm từ API ──
+    const fetchProduct = useCallback(async () => {
+        try {
+            setLoading(true);
+            const [productRes, similarRes] = await Promise.all([
+                ProductService.getById(productId),
+                ProductService.getSimilar(productId, 4),
+            ]);
+
+            if (productRes?.data) {
+                const p = productRes.data;
+                setProduct({
+                    id: p.productId,
+                    name: p.name,
+                    description: p.description,
+                    price: p.price,
+                    oldPrice: p.oldPrice,
+                    discount: p.discount,
+                    rating: p.rating,
+                    totalRatings: p.totalRatings,
+                    reviews: p.reviews,
+                    dimensions: p.dimensions,
+                    colors: p.colors,
+                    image: resolveProductImage(p.image),
+                    productViews: resolveProductViews(p.productViews),
+                    ratingBreakdown: p.ratingBreakdown,
+                    category: p.category,
+                });
+            }
+
+            if (similarRes?.data) {
+                setSimilarProducts(similarRes.data.map((p: ProductApi) => ({
+                    id: p.productId,
+                    name: p.name,
+                    description: p.description,
+                    price: p.price,
+                    oldPrice: p.oldPrice,
+                    rating: p.rating,
+                    image: resolveProductImage(p.image),
+                })));
+            }
+        } catch (error) {
+            console.error('Failed to fetch product detail:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [productId]);
+
+    useEffect(() => {
+        fetchProduct();
+    }, [fetchProduct]);
 
     const [quantity, setQuantity] = useState(1);
     const [selectedColor, setSelectedColor] = useState(0);
@@ -79,7 +135,7 @@ export default function ProductDetailScreen() {
     const tickScaleAnim = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
-    const totalPrice = (product.price * quantity).toFixed(2);
+    const totalPrice = product ? (product.price * quantity).toFixed(2) : '0.00';
 
     useEffect(() => {
         if (showSuccessModal) {
@@ -408,7 +464,7 @@ export default function ProductDetailScreen() {
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {SIMILAR_PRODUCTS.map((item) => (
+                {similarProducts.map((item) => (
                     <TouchableOpacity
                         key={item.id}
                         style={styles.similarCard}
@@ -440,6 +496,17 @@ export default function ProductDetailScreen() {
             </ScrollView>
         </View>
     );
+
+    // ── Loading state ──
+    if (loading || !product) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+                <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+                <ActivityIndicator size="large" color={colors.primary || '#1a2632'} />
+                <Text style={{ marginTop: 12, color: colors.textSecondary || '#8B9DB8', fontSize: 14 }}>Đang tải sản phẩm...</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.container, {backgroundColor: colors.background}]}>

@@ -7,7 +7,7 @@ from datetime import datetime, timezone # Đã import thêm timezone
 
 app = FastAPI(title="FUZZY AI Segmentation Service")
 
-# 1. Kết nối vào MongoDB (ĐÃ SỬA LẠI TÊN DATABASE)
+# 1. Kết nối vào MongoDB 
 MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = "fuzzy_furniture" 
 
