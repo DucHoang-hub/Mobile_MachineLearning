@@ -160,6 +160,7 @@ const getDevFallbackBaseUrls = (primaryBaseUrl: string): string[] => {
 };
 
 const isNetworkError = (error: unknown): boolean => {
+    if (error instanceof Error && error.name === 'AbortError') return true;
     const message = error instanceof Error ? error.message : String(error || '');
     return message === 'Network request failed' || /timed out/i.test(message);
 };
@@ -184,6 +185,10 @@ async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> 
         const url = `${baseUrl}${endpoint}`;
 
         try {
+            // Timeout sau 8 giây để không chờ quá lâu khi IP không khả dụng
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
             const response = await fetch(url, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -191,7 +196,10 @@ async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> 
                     ...options?.headers,
                 },
                 ...options,
+                signal: controller.signal,
             });
+
+            clearTimeout(timeoutId);
 
             const responseText = await response.text();
             let data: any = {};
@@ -228,7 +236,8 @@ async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> 
 
     if (isNetworkError(lastError)) {
         throw new Error(
-            `Không thể kết nối đến server. Các địa chỉ đã thử: ${candidateBaseUrls.join(', ')}.`,
+            `Không thể kết nối đến server. Các địa chỉ đã thử: ${candidateBaseUrls.join(', ')}. ` +
+            `Hãy kiểm tra: (1) Backend đang chạy? (2) IP trong .env đúng chưa? (3) Nếu dùng Expo tunnel, chuyển sang LAN mode (npx expo start).`,
         );
     }
 

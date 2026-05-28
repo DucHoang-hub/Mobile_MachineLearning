@@ -7,9 +7,9 @@ import { AuthService } from '@/services/api';
 
 const { width, height } = Dimensions.get('window');
 const statusBarHeight = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 44; // iOS notch area
-const HEADER_MAX_HEIGHT = height * 0.32 + statusBarHeight;
 const HEADER_MIN_HEIGHT = 100;
-const HEADER_SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
+const HEADER_MAX_HEIGHT = Math.max(height * 0.32 + statusBarHeight, HEADER_MIN_HEIGHT + 50);
+const HEADER_SCROLL_DISTANCE = Math.max(HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT, 1);
 
 export default function LoginScreen() {
     const router = useRouter();

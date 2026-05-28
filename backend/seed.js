@@ -22,7 +22,9 @@ const seedDatabase = async () => {
         await Category.deleteMany({});
 
         console.log('📦 Seeding categories...');
-        const categories = await Category.insertMany(CATEGORIES_SEED);
+        const categories = await Promise.all(
+            CATEGORIES_SEED.map(catData => Category.create(catData))
+        );
         console.log(`   ✅ ${categories.length} categories created`);
 
         console.log('🛋️  Seeding products...');

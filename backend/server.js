@@ -10,6 +10,7 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -85,22 +86,51 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/users', userRoutes);
 
 // ============ ERROR HANDLING ============
 app.use(notFound);
 app.use(errorHandler);
+
+// ============ TUNNEL URL (for Expo tunnel mode) ============
+let tunnelUrl = null;
+
+app.get('/api/tunnel-url', (req, res) => {
+    res.json({
+        success: true,
+        tunnelUrl: tunnelUrl,
+        localUrl: `http://localhost:${PORT}/api`,
+    });
+});
 
 // ============ START SERVER ============
 const startServer = async () => {
     // Try to connect to MongoDB (will fallback to in-memory if unavailable)
     const dbConnected = await connectDB();
 
-    const server = app.listen(PORT, '0.0.0.0', () => {
+    const server = app.listen(PORT, '0.0.0.0', async () => {
+        // Get local network IPs
+        const os = require('os');
+        const interfaces = os.networkInterfaces();
+        const lanIPs = [];
+        for (const name of Object.keys(interfaces)) {
+            for (const iface of interfaces[name]) {
+                if (iface.family === 'IPv4' && !iface.internal) {
+                    lanIPs.push(iface.address);
+                }
+            }
+        }
+
         console.log('');
         console.log('═'.repeat(50));
         console.log('  🚀 FUZZY FURNITURE API SERVER');
         console.log('═'.repeat(50));
         console.log(`  🌐 Server:     http://localhost:${PORT}`);
+        if (lanIPs.length > 0) {
+            lanIPs.forEach(ip => {
+                console.log(`  🌐 LAN:        http://${ip}:${PORT}`);
+            });
+        }
         console.log(`  📡 API Base:   http://localhost:${PORT}/api`);
         console.log(`  🏗️  Mode:       ${process.env.NODE_ENV || 'development'}`);
         console.log(`  💾 Database:   ${dbConnected ? 'MongoDB' : '⚡ In-Memory (28 products loaded)'}`);
@@ -126,7 +156,19 @@ const startServer = async () => {
         console.log('  POST   /api/categories');
         console.log('  PUT    /api/categories/:slug');
         console.log('  DELETE /api/categories/:slug');
+        console.log('  GET    /api/users');
+        console.log('  GET    /api/users/:id');
+        console.log('  POST   /api/users');
+        console.log('  PUT    /api/users/:id');
+        console.log('  DELETE /api/users/:id');
         console.log('');
+
+        // If EXPO_PUBLIC_DEVICE_IP or LAN IPs found, show instructions
+        if (lanIPs.length > 0) {
+            console.log('  📱 For mobile device, update .env:');
+            console.log(`     EXPO_PUBLIC_API_BASE_URL=http://${lanIPs[0]}:${PORT}/api`);
+            console.log('');
+        }
     });
 
     server.on('error', (error) => {

@@ -62,7 +62,10 @@ export default function CategoriesScreen() {
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
                 <Text style={[styles.title, { color: colors.text }]}>{t.categories}</Text>
-                <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
+                <TouchableOpacity 
+                    style={[styles.iconButton, { backgroundColor: colors.surface }]}
+                    onPress={() => router.push('/notifications' as any)}
+                >
                     <Ionicons name="notifications-outline" size={24} color={colors.text} />
                     <View style={styles.notificationBadge} />
                 </TouchableOpacity>

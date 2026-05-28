@@ -1,3 +1,4 @@
+import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -65,6 +66,7 @@ export default function ProfileScreen() {
     const { isDarkMode, setDarkMode, colors } = useTheme();
     const { language, setLanguage: setSelectedLanguage, t } = useLanguage();
     const selectedLanguage = language;
+    const { user, logout, login } = useAuth();
 
     const { openModal } = useLocalSearchParams();
 
@@ -79,9 +81,13 @@ export default function ProfileScreen() {
             setIsLanguageModalVisible(true);
         } else if (openModal === 'address'){
             setIsAddressModalVisible(true);
-        }else if (openModal === 'settings'){
+        } else if (openModal === 'settings'){
             setIsSettingsModalVisible(true);
-        } 
+        } else if (openModal === 'editProfile'){
+            setIsEditModalVisible(true);
+        } else if (openModal === 'terms'){
+            setIsTermsModalVisible(true);
+        }
     }, [openModal]);
 
     const MENU_ITEMS: MenuItem[] = [
@@ -137,12 +143,25 @@ export default function ProfileScreen() {
         notification: false,
     });
     const [profileData, setProfileData] = useState({
-        name: 'Marlin Watkin',
-        email: 'marlinw25@gmail.com',
-        phone: '+4498456215',
-        avatar: null as string | null,
+        name: user?.name || 'Marlin Watkin',
+        email: user?.email || 'marlinw25@gmail.com',
+        phone: user?.phone || '+4498456215',
+        avatar: user?.avatar || null,
     });
     const [editData, setEditData] = useState({ ...profileData });
+
+    useEffect(() => {
+        if (user) {
+            const synced = {
+                name: user.name || 'Marlin Watkin',
+                email: user.email || 'marlinw25@gmail.com',
+                phone: user.phone || '+4498456215',
+                avatar: user.avatar || null,
+            };
+            setProfileData(synced);
+            setEditData(synced);
+        }
+    }, [user]);
 
     const ORDER_ITEMS: OrderItem[] = [
         {
@@ -199,6 +218,8 @@ export default function ProfileScreen() {
             setIsAddressModalVisible(true);
         } else if (item.id === '5') {
             setIsLanguageModalVisible(true);
+        } else if (item.id === '6') {
+            router.push('/notifications' as any);
         } else if (item.id === '9') {
             setIsHelpModalVisible(true);
         } else if (item.id === '8') {
@@ -216,6 +237,15 @@ export default function ProfileScreen() {
 
     const handleSaveProfile = () => {
         setProfileData({ ...editData });
+        if (user) {
+            login({
+                ...user,
+                name: editData.name,
+                email: editData.email,
+                phone: editData.phone,
+                avatar: editData.avatar || undefined,
+            });
+        }
         setIsEditModalVisible(false);
     };
 
@@ -305,7 +335,7 @@ export default function ProfileScreen() {
                             setTimeout(() => setIsAddCardModalVisible(true), 1);
                         }}
                     >
-                        <Text style={styles.addNewCardText}>+Add New Card</Text>
+                        <Text style={[styles.addNewCardText, { color: colors.text }]}>+Add New Card</Text>
                     </TouchableOpacity>
 
                     {/* Wallet Section */}
@@ -794,43 +824,43 @@ export default function ProfileScreen() {
             animationType="slide"
             onRequestClose={() => setIsHelpModalVisible(false)}
         >
-            <View style={styles.modalContainer}>
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
                 {/* Modal Header */}
-                <View style={styles.modalHeader}>
+                <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
                     <TouchableOpacity onPress={() => setIsHelpModalVisible(false)}>
-                        <Ionicons name="chevron-back" size={28} color="#1a2632" />
+                        <Ionicons name="chevron-back" size={28} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.modalTitle}>{t.helpCenter}</Text>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.helpCenter}</Text>
                     <View style={{ width: 28 }} />
                 </View>
 
                 {/* Modal Content */}
                 <ScrollView
-                    style={styles.modalContent}
+                    style={[styles.modalContent, { backgroundColor: colors.background }]}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.helpModalScrollContent}
                 >
                     {/* Help Header Section */}
                     <View style={styles.helpHeaderSection}>
                         <View style={styles.helpIconContainer}>
-                            <Ionicons name="help-circle" size={60} color="#0F1B28" />
+                            <Ionicons name="help-circle" size={60} color={colors.text} />
                         </View>
-                        <Text style={styles.helpHeaderTitle}>{t.helpCenter}</Text>
-                        <Text style={styles.helpHeaderSubtitle}>
+                        <Text style={[styles.helpHeaderTitle, { color: colors.text }]}>{t.helpCenter}</Text>
+                        <Text style={[styles.helpHeaderSubtitle, { color: colors.textSecondary }]}>
                             Please get in touch and we will be happy to help you. Get quick customer support by selecting your item
                         </Text>
                     </View>
 
                     {/* Help Question Section */}
                     <View style={styles.helpQuestionSection}>
-                        <Text style={styles.helpQuestionTitle}>{t.whatIssues}</Text>
+                        <Text style={[styles.helpQuestionTitle, { color: colors.text }]}>{t.whatIssues}</Text>
 
                         {/* Help Items */}
                         <View style={styles.helpItemsContainer}>
                             {HELP_ITEMS.map((item) => (
                                 <TouchableOpacity
                                     key={item.id}
-                                    style={styles.helpItemButton}
+                                    style={[styles.helpItemButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
                                     onPress={() =>
                                         setExpandedHelpId(
                                             expandedHelpId === item.id ? null : item.id
@@ -839,17 +869,17 @@ export default function ProfileScreen() {
                                     activeOpacity={0.7}
                                 >
                                     <View style={styles.helpItemHeader}>
-                                        <Text style={styles.helpItemQuestion}>{item.question}</Text>
+                                        <Text style={[styles.helpItemQuestion, { color: colors.text }]}>{item.question}</Text>
                                         <Ionicons
                                             name={expandedHelpId === item.id ? 'chevron-up' : 'chevron-down'}
                                             size={20}
-                                            color="#8B9DB8"
+                                            color={colors.textSecondary}
                                         />
                                     </View>
 
                                     {expandedHelpId === item.id && (
-                                        <View style={styles.helpItemContent}>
-                                            <Text style={styles.helpItemAnswer}>{item.answer}</Text>
+                                        <View style={[styles.helpItemContent, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+                                            <Text style={[styles.helpItemAnswer, { color: colors.textSecondary }]}>{item.answer}</Text>
                                         </View>
                                     )}
                                 </TouchableOpacity>
@@ -857,9 +887,9 @@ export default function ProfileScreen() {
                         </View>
 
                         {/* Contact Support */}
-                        <TouchableOpacity style={styles.contactSupportButton}>
-                            <Ionicons name="call-outline" size={20} color="#FFFFFF" />
-                            <Text style={styles.contactSupportText}>{t.contactSupport}</Text>
+                        <TouchableOpacity style={[styles.contactSupportButton, { backgroundColor: colors.primary }]}>
+                            <Ionicons name="call-outline" size={20} color={colors.primaryText} />
+                            <Text style={[styles.contactSupportText, { color: colors.primaryText }]}>{t.contactSupport}</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -874,115 +904,115 @@ export default function ProfileScreen() {
             animationType="slide"
             onRequestClose={() => setIsTermsModalVisible(false)}
         >
-            <View style={styles.modalContainer}>
+            <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
                 {/* Modal Header */}
-                <View style={styles.modalHeader}>
+                <View style={[styles.modalHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
                     <TouchableOpacity onPress={() => setIsTermsModalVisible(false)}>
-                        <Ionicons name="chevron-back" size={28} color="#1a2632" />
+                        <Ionicons name="chevron-back" size={28} color={colors.text} />
                     </TouchableOpacity>
-                    <Text style={styles.modalTitle}>{t.termsConditions}</Text>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{t.termsConditions}</Text>
                     <View style={{ width: 28 }} />
                 </View>
 
                 {/* Modal Content */}
                 <ScrollView
-                    style={styles.modalContent}
+                    style={[styles.modalContent, { backgroundColor: colors.background }]}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.termsModalScrollContent}
                 >
                     {/* Welcome Section */}
                     <View style={styles.termsSectionContainer}>
-                        <Text style={styles.termsSectionTitle}>Welcome to Fuzzy Furniture Store!</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsSectionTitle, { color: colors.text }]}>Welcome to Fuzzy Furniture Store!</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             These terms and conditions outline the rules and regulations for the use of Fuzzy's website.
                         </Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             By accessing this website we assume you accept these terms and conditions. Do not continue to use Fuzzy Furniture Store if you do not agree to take all of the terms and conditions stated on this page.
                         </Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             The following terminology applies to these Terms and Conditions, Privacy Statement and Disclaimer Notice and all Agreements: "Client", "You" and "Your" refers to you, the person log on this website and compliant to the Company's terms and conditions. "The Company", "Ourselves", "We", "Our" and "Us", refers to our Company. "Party", "Parties", or "Us", refers to both the Client and ourselves. All terms refer to the offer, acceptance and consideration of payment necessary to undertake the process of our assistance to the Client in the most appropriate manner for the express purpose of meeting the Client's needs in respect of provision of the Company's stated services, in accordance with and subject to, prevailing law of CA.
                         </Text>
                     </View>
 
                     {/* Cookies Section */}
                     <View style={styles.termsSectionContainer}>
-                        <Text style={styles.termsSectionTitle}>Cookies</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsSectionTitle, { color: colors.text }]}>Cookies</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             We employ the use of cookies. By accessing Fuzzy Furniture Store, you agreed to use cookies in agreement with the Fuzzy's Privacy Policy.
                         </Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             Most interactive websites use cookies to let us retrieve the user's details for each visit. Cookies are used by our website to enable the functionality of certain areas to make it easier for people visiting our website. Some of our affiliate/advertising partners may also use cookies.
                         </Text>
                     </View>
 
                     {/* License Section */}
                     <View style={styles.termsSectionContainer}>
-                        <Text style={styles.termsSectionTitle}>License</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsSectionTitle, { color: colors.text }]}>License</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             Unless otherwise stated, Fuzzy and/or its licensors own the intellectual property rights for all material on Fuzzy Furniture Store. All intellectual property rights are reserved. You may access this from Fuzzy Furniture Store for your own personal use subjected to restrictions set in these terms and conditions.
                         </Text>
-                        <Text style={styles.termsText}>You must not:</Text>
-                        <Text style={styles.termsListItem}>• Republish material from Fuzzy Furniture Store</Text>
-                        <Text style={styles.termsListItem}>• Sell, rent or sub-license material from Fuzzy Furniture Store</Text>
-                        <Text style={styles.termsListItem}>• Reproduce, duplicate or copy material from Fuzzy Furniture Store</Text>
-                        <Text style={styles.termsListItem}>• Redistribute content from Fuzzy Furniture Store</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>You must not:</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Republish material from Fuzzy Furniture Store</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Sell, rent or sub-license material from Fuzzy Furniture Store</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Reproduce, duplicate or copy material from Fuzzy Furniture Store</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Redistribute content from Fuzzy Furniture Store</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             Parts of this website offer an opportunity for users to post and exchange opinions and information in certain areas of the website. Fuzzy does not filter, edit, publish or review Comments prior to their presence on the website. Comments do not reflect the views and opinions of Fuzzy, its agents and/or affiliates.
                         </Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             Fuzzy reserves the right to monitor all Comments and to remove any Comments which can be considered inappropriate, offensive or causes breach of these Terms and Conditions.
                         </Text>
-                        <Text style={styles.termsText}>You warrant and represent that:</Text>
-                        <Text style={styles.termsListItem}>• You are entitled to post the Comments on our website and have all necessary licenses and consents to do so;</Text>
-                        <Text style={styles.termsListItem}>• The Comments do not invade any intellectual property right, including without limitation copyright, patent or trademark of any third party;</Text>
-                        <Text style={styles.termsListItem}>• The Comments do not contain any defamatory, libelous, offensive, indecent or otherwise unlawful material which is an invasion of privacy;</Text>
-                        <Text style={styles.termsListItem}>• The Comments will not be used to solicit or promote business or custom or present commercial activities or unlawful activity.</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>You warrant and represent that:</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• You are entitled to post the Comments on our website and have all necessary licenses and consents to do so;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• The Comments do not invade any intellectual property right, including without limitation copyright, patent or trademark of any third party;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• The Comments do not contain any defamatory, libelous, offensive, indecent or otherwise unlawful material which is an invasion of privacy;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• The Comments will not be used to solicit or promote business or custom or present commercial activities or unlawful activity.</Text>
                     </View>
 
                     {/* Hyperlinking Section */}
                     <View style={styles.termsSectionContainer}>
-                        <Text style={styles.termsSectionTitle}>Hyperlinking to our Content</Text>
-                        <Text style={styles.termsText}>The following organizations may link to our Website without prior written approval:</Text>
-                        <Text style={styles.termsListItem}>• Government agencies;</Text>
-                        <Text style={styles.termsListItem}>• Search engines;</Text>
-                        <Text style={styles.termsListItem}>• News organizations;</Text>
-                        <Text style={styles.termsListItem}>• Online directory distributors;</Text>
-                        <Text style={styles.termsListItem}>• System wide Accredited Businesses.</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsSectionTitle, { color: colors.text }]}>Hyperlinking to our Content</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>The following organizations may link to our Website without prior written approval:</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Government agencies;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Search engines;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• News organizations;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Online directory distributors;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• System wide Accredited Businesses.</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             These organizations may link to our home page, to publications or to other Website information so long as the link: (a) is not in any way deceptive; (b) does not falsely imply sponsorship, endorsement or approval of the linking party and its products and/or services; and (c) fits within the context of the linking party's site.
                         </Text>
                     </View>
 
                     {/* Reservation of Rights */}
                     <View style={styles.termsSectionContainer}>
-                        <Text style={styles.termsSectionTitle}>Reservation of Rights</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsSectionTitle, { color: colors.text }]}>Reservation of Rights</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             We reserve the right to request that you remove all links or any particular link to our Website. You approve to immediately remove all links to our Website upon request. We also reserve the right to amend these terms and conditions and it's linking policy at any time. By continuously linking to our Website, you agree to be bound to and follow these linking terms and conditions.
                         </Text>
                     </View>
 
                     {/* Removal of Links */}
                     <View style={styles.termsSectionContainer}>
-                        <Text style={styles.termsSectionTitle}>Removal of Links from our Website</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsSectionTitle, { color: colors.text }]}>Removal of Links from our Website</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             If you find any link on our Website that is offensive for any reason, you are free to contact and inform us any moment. We will consider requests to remove links but we are not obligated to or so or to respond to you directly.
                         </Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             We do not ensure that the information on this website is correct, we do not warrant its completeness or accuracy; nor do we promise to ensure that the website remains available or that the material on the website is kept up to date.
                         </Text>
                     </View>
 
                     {/* Disclaimer */}
                     <View style={styles.termsSectionContainer}>
-                        <Text style={styles.termsSectionTitle}>Disclaimer</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsSectionTitle, { color: colors.text }]}>Disclaimer</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             To the maximum extent permitted by applicable law, we exclude all representations, warranties and conditions relating to our website and the use of this website. Nothing in this disclaimer will:
                         </Text>
-                        <Text style={styles.termsListItem}>• Limit or exclude our or your liability for death or personal injury;</Text>
-                        <Text style={styles.termsListItem}>• Limit or exclude our or your liability for fraud or fraudulent misrepresentation;</Text>
-                        <Text style={styles.termsListItem}>• Limit any of our or your liabilities in any way that is not permitted under applicable law;</Text>
-                        <Text style={styles.termsListItem}>• Exclude any of our or your liabilities that may not be excluded under applicable law.</Text>
-                        <Text style={styles.termsText}>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Limit or exclude our or your liability for death or personal injury;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Limit or exclude our or your liability for fraud or fraudulent misrepresentation;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Limit any of our or your liabilities in any way that is not permitted under applicable law;</Text>
+                        <Text style={[styles.termsListItem, { color: colors.textSecondary }]}>• Exclude any of our or your liabilities that may not be excluded under applicable law.</Text>
+                        <Text style={[styles.termsText, { color: colors.textSecondary }]}>
                             As long as the website and the information and services on the website are provided free of charge, we will not be liable for any loss or damage of any nature.
                         </Text>
                     </View>
@@ -1231,7 +1261,13 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* Logout Button */}
-                <TouchableOpacity style={styles.logoutButton}>
+                <TouchableOpacity 
+                    style={styles.logoutButton}
+                    onPress={() => {
+                        logout();
+                        router.replace('/login');
+                    }}
+                >
                     <Ionicons name="log-out-outline" size={20} color="#FF4444" />
                     <Text style={styles.logoutText}>{t.logout}</Text>
                 </TouchableOpacity>
@@ -1396,7 +1432,7 @@ const styles = StyleSheet.create({
     modalContainer: {
         flex: 1,
         backgroundColor: '#FFFFFF',
-        paddingTop: Platform.OS === 'ios' ? 50 : 30,
+        paddingTop: Platform.OS === 'ios' ? 60 : 45,
     },
     modalHeader: {
         flexDirection: 'row',

@@ -4,21 +4,21 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -59,7 +59,7 @@ const WINGBACK_CHAIR_2 = require('../../assets/images/screen3_img16.png');
 import SmartBanner from '@/components/SmartBanner';
 import { useCart } from '@/contexts/CartContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { ProductService, CategoryService, ProductApi } from '@/services/api';
+import { CategoryService, ProductApi, ProductService } from '@/services/api';
 import { resolveProductImage } from '@/utils/imageMap';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -82,6 +82,34 @@ const mapApiProduct = (p: ProductApi): Product => ({
 export default function HomeScreen() {
   const params = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        setIsSearching(true);
+        try {
+          const res = await ProductService.search(searchQuery.trim());
+          if (res?.success && res.data) {
+            setSearchResults(res.data.map(mapApiProduct));
+          } else {
+            setSearchResults([]);
+          }
+        } catch (error) {
+          console.error("Search failed:", error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    }, 400);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
   const [activeCategory, setActiveCategory] = useState('1');
   // Lấy thông tin user từ global auth state thay vì hardcode
   const { user, logout } = useAuth();
@@ -417,7 +445,10 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity 
+          style={[styles.iconButton, { backgroundColor: colors.surface }]}
+          onPress={() => router.push('/notifications' as any)}
+        >
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
           <View style={styles.notificationBadge} />
         </TouchableOpacity>
@@ -435,15 +466,46 @@ export default function HomeScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}>
+        {/* <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surfaceSecondary, borderColor: colors.border }]}>
           <MaterialCommunityIcons name="view-grid-outline" size={24} color={colors.text} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 }}>
           <ActivityIndicator size="large" color={colors.primary || '#1a2632'} />
           <Text style={{ marginTop: 12, color: colors.textSecondary, fontSize: 14 }}>Đang tải dữ liệu...</Text>
+        </View>
+      ) : searchQuery.trim() !== '' ? (
+        <View style={{ flex: 1, paddingHorizontal: 20 }}>
+          <View style={[styles.sectionHeader, { paddingHorizontal: 0, marginTop: 15 }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Search Results</Text>
+            <Text style={[styles.viewAllText, { color: colors.textSecondary }]}>{searchResults.length} found</Text>
+          </View>
+
+          {isSearching ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 50 }}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : searchResults.length > 0 ? (
+            <FlatList
+              data={searchResults}
+              renderItem={rendersItem1('search_results')}
+              keyExtractor={item => item.id}
+              numColumns={2}
+              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 100 }}
+            />
+          ) : (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80 }}>
+              <Ionicons name="search-outline" size={64} color={colors.textSecondary} />
+              <Text style={{ marginTop: 16, color: colors.text, fontSize: 16, fontWeight: '600' }}>No products found</Text>
+              <Text style={{ marginTop: 8, color: colors.textSecondary, fontSize: 14, textAlign: 'center' }}>
+                We couldn't find any products matching your search.
+              </Text>
+            </View>
+          )}
         </View>
       ) : (
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -675,16 +737,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1a2632',
   },
-  filterButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E8ECF0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  // filterButton: {
+  //   width: 48,
+  //   height: 48,
+  //   borderRadius: 12,
+  //   backgroundColor: '#FFFFFF',
+  //   borderWidth: 1,
+  //   borderColor: '#E8ECF0',
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  // },
   bannerContainer: {
     margin: 20,
     height: 180,
